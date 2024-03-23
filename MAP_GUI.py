@@ -25,11 +25,9 @@ MAP = (
 '111111111111111111111111111'
 )
 
-MAP = Map(10, 25)
-MAP.generate_object((1, 5, 3, 9))
-MAP.generate_object((3, 11, 4, 13))
+MAP = Map(False)
 list = list()
-seeker = Seeker(0, (0,0))
+seeker = None
 MAP.generate_mobs(list, 4, seeker)
 
 # init pygame
@@ -52,12 +50,12 @@ def draw_map():
         for col in range(COL):
             # calculate square index
             square = row * COL + col
-            if MAP[row, col] == 2:
+            if MAP[row, col] == '2':
                 pygame.draw.rect (
                     win,(69, 115, 195),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
                 continue
-            elif MAP[row, col] == 3:
+            elif MAP[row, col] == '3':
                 pygame.draw.rect (
                     win,(199, 51, 21),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
@@ -65,7 +63,7 @@ def draw_map():
             # draw map in the game window
             pygame.draw.rect(
                 win,
-                (200, 200, 200) if MAP[row, col] == 1 else (100, 100, 100),
+                (200, 200, 200) if MAP[row, col] == '1' else (100, 100, 100),
                 (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
             )
 
