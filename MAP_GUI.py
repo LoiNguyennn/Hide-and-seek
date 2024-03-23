@@ -3,6 +3,34 @@ import sys
 import math
 from settings import *
 
+ROW = 10
+COL = 25
+
+SCREEN_HEIGHT = ROW * TILE_SIZE
+SCREEN_WIDTH = COL * TILE_SIZE
+
+# map
+MAP = (
+'111111111111111111111111111'
+'100000000000000000000000001'
+'100000000000000001100000001'
+'100000000000000001000000001'
+'100000000001000101011111111'
+'100000000001000100000020001'
+'111111111001000100020000001'
+'100000000001000111000000201'
+'100030000001000001000200001'
+'100000000001000001000000001'
+'100000000000000001000000001'
+'111111111111111111111111111'
+)
+
+MAP = Map(10, 25)
+MAP.generate_object((1, 5, 3, 9))
+MAP.generate_object((3, 11, 4, 13))
+list = list()
+seeker = Seeker(0, (0,0))
+MAP.generate_mobs(list, 4, seeker)
 
 # init pygame
 pygame.init()
@@ -24,12 +52,12 @@ def draw_map():
         for col in range(COL):
             # calculate square index
             square = row * COL + col
-            if GUI_MAP[square] == '2':
+            if MAP[row, col] == 2:
                 pygame.draw.rect (
                     win,(69, 115, 195),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
                 continue
-            elif GUI_MAP[square] == '3':
+            elif MAP[row, col] == 3:
                 pygame.draw.rect (
                     win,(199, 51, 21),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
@@ -37,7 +65,7 @@ def draw_map():
             # draw map in the game window
             pygame.draw.rect(
                 win,
-                (200, 200, 200) if MAP[square] == '1' else (100, 100, 100),
+                (200, 200, 200) if MAP[row, col] == 1 else (100, 100, 100),
                 (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
             )
 
