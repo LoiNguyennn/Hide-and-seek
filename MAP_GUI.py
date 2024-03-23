@@ -24,12 +24,12 @@ def draw_map():
         for col in range(COL):
             # calculate square index
             square = row * COL + col
-            if MAP[square] == '2':
+            if GUI_MAP[square] == '2':
                 pygame.draw.rect (
                     win,(69, 115, 195),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
                 continue
-            elif MAP[square] == '3':
+            elif GUI_MAP[square] == '3':
                 pygame.draw.rect (
                     win,(199, 51, 21),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
