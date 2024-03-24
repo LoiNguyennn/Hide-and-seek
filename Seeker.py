@@ -71,34 +71,10 @@ class Seeker:
 			
 	def markSeen(self, _map):
 		# mark all position in vision as visited
-		r = len(_map)
-		c = len(_map[0])
-		x, y = self.position
-		for dir in DIRECTION.LIST_DIR:
-			for i in range(-4, 4):
-				v = (x + i * dir[0], y + i * dir[1])
-				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
-					break
-				if _map[v[0]][v[1]] != '0':
-					break
-				self.visited.append(v)
+		
 	def checkVision(self, _map):
 		# return number of not visited position in vision
-		r = len(_map)
-		c = len(_map[0])
-		x, y = self.position
-		cnt = 0
-		for dir in DIRECTION.LIST_DIR:
-			for i in range(1, 4):
-				v = (x + i * dir[0], y + i * dir[1])
-				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
-					break
-				if _map[v[0]][v[1]] != '0':
-					break
-				if v not in self.visited:
-					cnt += 1
 
-		return cnt
 	def GoTo(self, position, _map):
 		# go to position, return path from current pos to destination pos
 		r = len(_map)
