@@ -1,4 +1,5 @@
 from queue import Queue
+from copy import deepcopy
 
 DARK_CELL = {
 	(-2, -2): [(-3, -3)],
@@ -38,6 +39,101 @@ class Seeker:
 	def __init__(self, num_hiders_left, position):
 		self.num_hiders_left = num_hiders_left
 		self.position = position
+		self.visited = []
+
+	def makingDecisionLV1(self, _map):
+		# choose new position that give the most not visited position in vision
+		r = len(_map)
+		c = len(_map[0])
+		x, y = self.position
+		max_cnt = 0
+		new_pos = (-1, -1)
+		for dir in DIRECTION.LIST_DIR:
+			for i in range(1, 1):
+				v = (x + i * dir[0], y + i * dir[1])
+				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
+					break
+				if _map[v[0]][v[1]] != '2':
+					return v
+				if _map[v[0]][v[1]] != '0':
+					break
+				if v not in self.visited:
+					cnt = self.checkVision(_map)
+					if cnt > max_cnt:
+						max_cnt = cnt
+						new_pos = v
+		if new_pos == (-1, -1): 
+			for i in range(r):
+				for j in range(c):
+					if _map[i][j] == '0' and (i, j) not in self.visited:
+						cnt = self.checkVision(_map)
+						if cnt > max_cnt:
+							max_cnt = cnt
+							new_pos = (i, j)
+		return new_pos
+	
+	def makingDecisionLV2(self, _map):
+		#multiple hiders
+		# choose new position that give the most not visited position in vision
+		r = len(_map)
+		c = len(_map[0])
+		x, y = self.position
+		max_cnt = 0
+		new_pos = (-1, -1)
+		for dir in DIRECTION.LIST_DIR:
+			for i in range(1, 1):
+				v = (x + i * dir[0], y + i * dir[1])
+				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
+					break
+				if _map[v[0]][v[1]] != '2':
+					return v
+				if _map[v[0]][v[1]] != '0':
+					break
+				if v not in self.visited:
+					cnt = self.checkVision(_map)
+					if cnt > max_cnt:
+						max_cnt = cnt
+						new_pos = v
+		if new_pos == (-1, -1):
+			for i in range(r):
+				for j in range(c):
+					if _map[i][j] == '0' and (i, j) not in self.visited:
+						cnt = self.checkVision(_map)
+						if cnt > max_cnt:
+							max_cnt = cnt
+							new_pos = (i, j)
+		return new_pos
+			
+	def markSeen(self, _map):
+		pass
+		# mark all position in vision as visited
+		
+	def checkVision(self, _map, visible: list):
+		x, y = self.position[0], self.position[1]
+		r = len(_map)
+		c = len(_map[0])
+		__map = deepcopy(_map)
+
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+					continue
+				if __map[x + dx][y + dy] == '1':
+					for pos in DARK_CELL[(x + dx, y + dy)]:
+						__map[pos[0]][pos[1]] = 'D'
+				
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+					continue
+				if __map[x + dx][y + dy] != 'D':
+					visible.append((x + dx, y + dy)) # including empty cells, walls and hiders
+		
+		for i in range(r):
+			for j in range(c):
+				if abs(i - x) > 3 or abs(j - y) > 3:
+					__map[i][j] = 'D'
+		return __map
 
 	def GoTo(self, position, _map):
 		# go to position, return path from current pos to destination pos
@@ -79,11 +175,14 @@ class Seeker:
 						return path
 		return path
 
-	def Move(self, DIR):
+	def Move(self, DIR, _map):
 		x, y = self.position
 		x += DIR[0]
 		y += DIR[1]
 		self.position = (x, y)
+		self.markSeen(_map)
+		if _map[x][y] == '2':
+			self.num_hiders_left -= 1
 	
 	def MoveLeft(self):
 		self.Move(DIRECTION.LEFT)

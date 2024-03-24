@@ -5,6 +5,10 @@ import sys
 from Seeker import *
 MAX_POINT = 1000000
 TILE_SIZE = 30
+SEEKER_COLOR = (69, 115, 195)
+HIDER_COLOR  = (199, 51, 21)
+WALL_COLOR = (200, 200, 200) 
+VISIBLE_COLOR = (255, 255, 102)
 
 class Hider():
     def __init__(self, position):
@@ -124,18 +128,18 @@ class Map():
                     # calculate square index
                     if self.__map[row][col] == '2':
                         pygame.draw.rect (
-                            win,(69, 115, 195),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                            win,SEEKER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                         )
                         continue
                     elif self.__map[row][col] == '3':
                         pygame.draw.rect (
-                            win,(199, 51, 21),(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                            win,HIDER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                         )
                         continue
                     # draw map in the game window
                     pygame.draw.rect(
                         win,
-                        (200, 200, 200) if self.__map[row][col] == '1' else (100, 100, 100),
+                        WALL_COLOR if self.__map[row][col] == '1' else VISIBLE_COLOR ,
                         (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
         # game loop
@@ -176,6 +180,6 @@ class HideAndSeek():
 
     def run_game(self):
         self.__map.display_game()
-        
+
 game = HideAndSeek()
 game.run_game()
