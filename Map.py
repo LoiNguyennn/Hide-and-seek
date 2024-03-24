@@ -8,7 +8,7 @@ TILE_SIZE = 30
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
 WALL_COLOR = (200, 200, 200) 
-VISIBLE_COLOR = (255, 255, 102)
+VISIBLE_COLOR = (100, 100, 100)
 
 class Hider():
     def __init__(self, position):
