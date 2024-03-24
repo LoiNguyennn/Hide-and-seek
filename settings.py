@@ -177,7 +177,5 @@ class HideAndSeek():
     def run_game(self):
         self.__map.display_game()
         
-###test run game:
-        
-# game = HideAndSeek()
-# game.run_game()
+game = HideAndSeek()
+game.run_game()
