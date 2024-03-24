@@ -16,7 +16,9 @@ class Hider():
     
 class Map():
     def __init__(self, inputByKeyboard: bool):
+        self.list_hider = list()
         self.__map = list()
+        self.seeker = None
         if inputByKeyboard:
             width = int(input("Please enter the width of the map: "))
             length = int(input("Please enter the length of the map: "))
@@ -33,25 +35,35 @@ class Map():
             with open('map.txt', 'r') as file:
                 lines = file.readlines()
             self.width, self.length = (map(int, lines[0].split()))
+            #Input map
             for i in range(1, self.width + 1):
                 self.__map.append(lines[i].split())
             self.blank = self.length * self.width
-            self.num_hider = sum(sublist.count('2') for sublist in self.__map)
-            self.seek = any('3' in sublist for sublist in self.__map)
+            seeker_pos = (-1, -1)
+            #Find all the hiders
+            for col in range(self.width):
+                for row in range(self.length):
+                    if self.__map[col][row] == '2':
+                        self.list_hider.append(Hider((col, row)))
+                    elif self.__map[col][row] == '3':
+                        seeker_pos = (col, row)
+            #Assign the seeker
+            if seeker_pos != (-1, -1):
+                self.seeker = Seeker(len(self.list_hider), seeker_pos)
             i += 1 #object's line's index
             for j in range(i, len(lines)):
                 self.generate_object(tuple(map(int, lines[j].split())))
     #Erase hider to remain number
-    def erase_hider(self, remain: int):
-        if self.num_hider <= remain:
-            return
-        for i in range(self.width):
-                for j in range(self.length):
-                    if self.__map[i][j] == '2':
-                        self.num_hider -= 1
-                        self.__map[i][j] = '0'
-                        if self.num_hider == remain:
-                            return  
+    def level1(self):
+        num_hider = len(self.list_hider)
+        if num_hider > 1:
+            for i in range(self.width):
+                    for j in range(self.length):
+                        if self.__map[i][j] == '2':
+                            num_hider -= 1
+                            self.__map[i][j] = '0'
+                            if num_hider == 1:
+                                return  
     #Create object
     def generate_object(self, object: tuple):
         top, left, bottom, right = object
@@ -79,29 +91,22 @@ class Map():
                 self.__map[bottom + 1][left] = '1'
         self.blank -= (bottom - top + 1) * (right - left + 1)
     #Create mobs (hiders and seeker)
-    def generate_mobs(self, list_hiders: list, num_hiders: int, seeker):
-        num_hiders = min(num_hiders, self.blank) - self.num_hider
-        for i in range(num_hiders):
+    def generate_mobs(self, num_hiders: int):
+        num_hider = min(num_hiders, self.blank) - len(self.list_hider)
+        for i in range(num_hider):
             while True:
                 row = random.randint(0, self.width - 1)
                 col = random.randint(0, self.length - 1)
                 if self.__map[row][col] == '0':
-                    list_hiders.append(Hider((row, col)))
+                    self.list_hider.append(Hider((row, col)))
                     self.__map[row][col] = '2'
                     break
-        if self.seek:
-            for i, row in enumerate(self.__map):
-                for j, elem in enumerate(row):
-                    if elem == '3':
-                        seeker = Seeker(num_hiders, (i, j))
-            return
-        while True:
+        while self.seeker == None:
             row = random.randint(0, self.width - 1)
             col = random.randint(0, self.length - 1)
             if self.__map[row][col] == '0':
-                seeker = Seeker(num_hiders, (row, col))
+                self.seeker = Seeker(num_hiders + num_hider, (row, col))
                 self.__map[row][col] = '3'
-                break
     #Get square's value
     def __getitem__(self, position):
         row, col = position
@@ -128,12 +133,12 @@ class Map():
                     # calculate square index
                     if self.__map[row][col] == '2':
                         pygame.draw.rect (
-                            win,SEEKER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                            win,HIDER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                         )
                         continue
                     elif self.__map[row][col] == '3':
                         pygame.draw.rect (
-                            win,HIDER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                            win,SEEKER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                         )
                         continue
                     # draw map in the game window
@@ -165,21 +170,20 @@ class HideAndSeek():
                 break
         self.__map = Map(cmd - 1)
         self.__level = int(input("Please input the level of the game: "))
-        #Generate mobs
-        self.__list_hiders = []  # Initialize the list of hiders
-        self.__seeker = None  # Initialize the seeker
         num_hider = 1
-        if self.__level > 1:
+        if self.__level != 1:
             num_hider = int(input("Please enter number of hiders: "))
             while num_hider < 1:
                 num_hider = int(input("Please re-enter number of hiders: "))
         else:
-           self.__map.erase_hider(1)
-        self.__map.generate_mobs(self.__list_hiders, num_hider, self.__seeker)
+           self.__map.level1()
+        self.__map.generate_mobs(num_hider)
         self.__point = MAX_POINT
 
     def run_game(self):
         self.__map.display_game()
-
+        
+###test run game:
+        
 game = HideAndSeek()
 game.run_game()
