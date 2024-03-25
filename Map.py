@@ -12,6 +12,7 @@ HIDER_COLOR  = (199, 51, 21)
 WALL_COLOR = (200, 200, 200) 
 VISIBLE_COLOR = (100, 100, 100)
 LIGHT_COLOR = (255, 255, 102)
+ALERT_COLOR = (168, 208, 141)
 
 class Hider():
     def __init__(self, position):
@@ -48,7 +49,6 @@ class Map():
                 for row in range(self.length):
                     if self.__map[col][row] == '2':
                         self.list_hider.append(Hider((col, row)))
-                        self.__map[col][row] = '0'
                     elif self.__map[col][row] == '3':
                         self.__map[col][row] = '0'
                         seeker_pos = (col, row)
@@ -99,6 +99,7 @@ class Map():
                 col = random.randint(0, self.length - 1)
                 if self.__map[row][col] == '0':
                     self.list_hider.append(Hider((row, col)))
+                    self.__map[row][col] = '2'
                     break
         while self.seeker == None:
             row = random.randint(0, self.width - 1)
@@ -157,7 +158,6 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
             # draw 2D map
-            win.fill((0, 0, 0))
             draw_map()
             draw_seen(self.seeker.checkVision(self.__map))
             draw_hider(self.list_hider)
@@ -178,6 +178,8 @@ class Map():
             for step in path:
                 self.seeker.position = step
                 time.sleep(0.5)  # Delay between each move
+            col, row = hider.position
+            self.__map[col][row] = '0'
             self.list_hider.remove(hider)  
 
         # Join the display_game thread after all update_seeker threads have finished
