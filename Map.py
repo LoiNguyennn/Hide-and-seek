@@ -172,16 +172,26 @@ class Map():
         display_thread = threading.Thread(target=self.display_game, daemon=True)
         display_thread.start()
 
-        # Loop through each hider and create an update_seeker thread
-        for hider in self.list_hider[:]: 
-            path = self.seeker.GoTo(hider.position, self.__map.copy())
+        #an array to store all hiders' positions has been spotted by the seeker
+        while self.seeker.num_hiders_left > 0:
+
+            points = self.seeker.mapSweeping(self.__map)
+        
+            for point in points:
+                path = self.seeker.GoTo(point, self.__map.copy())
+                #mark visited position
+                self.seeker.visited.append(point)
+
             for step in path:
                 self.seeker.position = step
-                time.sleep(0.5)  # Delay between each move
-            col, row = hider.position
-            self.__map[col][row] = '0'
-            self.list_hider.remove(hider)  
-
+                if self.__map[step[0]][step[1]] == '2':
+                    self.__map[step[0]][step[1]] = '0'
+                    self.seeker.num_hiders_left -= 1
+                    self.blank += 1
+                    self.point += 1
+                time.sleep(0.2)
+            
+            
         # Join the display_game thread after all update_seeker threads have finished
         display_thread.join()
 
