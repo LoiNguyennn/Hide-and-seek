@@ -1,6 +1,8 @@
 # global constants
 import random
 import pygame
+import threading
+import time
 import sys
 from Seeker import *
 MAX_POINT = 1000000
@@ -45,7 +47,9 @@ class Map():
                 for row in range(self.length):
                     if self.__map[col][row] == '2':
                         self.list_hider.append(Hider((col, row)))
+                        self.__map[col][row] = '0'
                     elif self.__map[col][row] == '3':
+                        self.__map[col][row] = '0'
                         seeker_pos = (col, row)
             #Assign the seeker
             if seeker_pos != (-1, -1):
@@ -99,7 +103,6 @@ class Map():
                 col = random.randint(0, self.length - 1)
                 if self.__map[row][col] == '0':
                     self.list_hider.append(Hider((row, col)))
-                    self.__map[row][col] = '2'
                     break
         while self.seeker == None:
             row = random.randint(0, self.width - 1)
@@ -126,27 +129,24 @@ class Map():
         pygame.display.set_caption('Hide and seek')
         clock = pygame.time.Clock()
         def draw_map():
-            # loop over map rows
             for row in range(self.width):
-                # loop over map columns
                 for col in range(self.length):
-                    # calculate square index
-                    if self.__map[row][col] == '2':
-                        pygame.draw.rect (
-                            win,HIDER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-                        )
-                        continue
-                    elif self.__map[row][col] == '3':
-                        pygame.draw.rect (
-                            win,SEEKER_COLOR,(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-                        )
-                        continue
                     # draw map in the game window
                     pygame.draw.rect(
                         win,
                         WALL_COLOR if self.__map[row][col] == '1' else VISIBLE_COLOR ,
                         (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
+        def draw_hider(list_hider):
+            for hider in list_hider:
+                pygame.draw.rect(
+                        win, HIDER_COLOR, (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                    )
+        def draw_seeker(seeker_pos):
+            pygame.draw.rect(
+                    win, SEEKER_COLOR, (seeker_pos[1] * TILE_SIZE, seeker_pos[0] * TILE_SIZE
+                    , TILE_SIZE - 2, TILE_SIZE - 2)
+                )
         # game loop
         while True:
             # escape condition
@@ -155,11 +155,31 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
             # draw 2D map
+            win.fill((0, 0, 0))
             draw_map()
+            draw_hider(self.list_hider)
+            draw_seeker(self.seeker.position)
             # update display
             pygame.display.flip()
             # set FPS
             clock.tick(30)
+    #run game
+    def run_game(self):
+        # Create and start the display_game thread
+        display_thread = threading.Thread(target=self.display_game, daemon=True)
+        display_thread.start()
+
+        # Loop through each hider and create an update_seeker thread
+        for hider in self.list_hider[:]: 
+            path = self.seeker.GoTo(hider.position, self.__map.copy())
+            for step in path:
+                self.seeker.position = step
+                time.sleep(0.5)  # Delay between each move
+            self.list_hider.remove(hider)  
+
+        # Join the display_game thread after all update_seeker threads have finished
+        display_thread.join()
+
 
 class HideAndSeek():
     def __init__(self):
@@ -181,7 +201,7 @@ class HideAndSeek():
         self.__point = MAX_POINT
 
     def run_game(self):
-        self.__map.display_game()
+        self.__map.run_game()
         
 ###test run game:
         
