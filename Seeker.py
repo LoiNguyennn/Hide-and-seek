@@ -108,32 +108,29 @@ class Seeker:
 		pass
 		# mark all position in vision as visited
 		
-	def checkVision(self, _map, visible: list):
+	def checkVision(self, _map):
+		visible = []
 		x, y = self.position[0], self.position[1]
 		r = len(_map)
 		c = len(_map[0])
 		__map = deepcopy(_map)
 
-		for dx in range(-3, 4):
-			for dy in range(-3, 4):
+		for dx in range(-2, 3):
+			for dy in range(-2, 3):
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
 				if __map[x + dx][y + dy] == '1':
-					for pos in DARK_CELL[(x + dx, y + dy)]:
-						__map[pos[0]][pos[1]] = 'D'
-				
+					for pos in DARK_CELL[(dx, dy)]:
+						__map[x + pos[0]][y + pos[1]] = 'D'
+
+	
 		for dx in range(-3, 4):
 			for dy in range(-3, 4):
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
-				if __map[x + dx][y + dy] != 'D':
-					visible.append((x + dx, y + dy)) # including empty cells, walls and hiders
-		
-		for i in range(r):
-			for j in range(c):
-				if abs(i - x) > 3 or abs(j - y) > 3:
-					__map[i][j] = 'D'
-		return __map
+				if __map[x + dx][y + dy] == '0':
+					visible.append((x + dx, y + dy)) # including empty cells, walls and hiders	
+		return visible
 
 	def GoTo(self, position, _map):
 		# go to position, return path from current pos to destination pos
@@ -155,58 +152,60 @@ class Seeker:
 				v = (u[0] + dir[0], u[1] + dir[1])
 				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
 					continue 
-				if _map[v[0]][v[1]] != '0':
-					continue
-
-				if v not in visited:
-					visited[v] = True
-					par[v] = u
-					q.put(v)
-					if v == position:
-						tmp = _map[self.position[0]][self.position[1]]
-						_map[self.position[0]][self.position[1]] = _map[position[0]][position[1]]
-						_map[position[0]][position[1]] = tmp
-						self.position = position
-
-						while v != (-1, -1):
-							path.append(v)
-							v = par[v]
-						path.reverse()
-						return path
+				if _map[v[0]][v[1]] == '0' or _map[v[0]][v[1]] == '2':	
+					if v not in visited:
+						visited[v] = True
+						par[v] = u
+						q.put(v)
+						if v == position:
+							while v != (-1, -1):
+								path.append(v)
+								v = par[v]
+							path.reverse()
+							return path
 		return path
 
 	def Move(self, DIR, _map):
+		r = len(_map)
+		c = len(_map[0])
+		
 		x, y = self.position
 		x += DIR[0]
 		y += DIR[1]
+		
+		if x < 0 or x >= r or y < 0 or y >= c:
+			return False
+
+		_map[self.position[0]][self.position[1]], _map[x][y] = _map[x][y], _map[self.position[0]][self.position[1]]
 		self.position = (x, y)
+
 		self.markSeen(_map)
 		if _map[x][y] == '2':
 			self.num_hiders_left -= 1
 	
-	def MoveLeft(self):
-		self.Move(DIRECTION.LEFT)
+	def MoveLeft(self, _map):
+		self.Move(DIRECTION.LEFT, _map)
 	
-	def MoveUp(self):
-		self.Move(DIRECTION.UP)
+	def MoveUp(self, _map):
+		self.Move(DIRECTION.UP, _map)
 	
-	def MoveRight(self):
-		self.Move(DIRECTION.RIGHT)
+	def MoveRight(self, _map):
+		self.Move(DIRECTION.RIGHT, _map)
 	
-	def MoveDown(self):
-		self.Move(DIRECTION.DOWN)
+	def MoveDown(self, _map):
+		self.Move(DIRECTION.DOWN, _map)
 	
-	def MoveLeftUp(self):
-		self.Move(DIRECTION.LEFT_UP)
+	def MoveLeftUp(self, _map):
+		self.Move(DIRECTION.LEFT_UP, _map)
 	
-	def MoveRightUp(self):
-		self.Move(DIRECTION.RIGHT_UP)
+	def MoveRightUp(self, _map):
+		self.Move(DIRECTION.RIGHT_UP, _map)
 
-	def MoveLeftDown(self):
-		self.Move(DIRECTION.LEFT_DOWN)
+	def MoveLeftDown(self, _map):
+		self.Move(DIRECTION.LEFT_DOWN, _map)
 
-	def MoveRightDown(self):
-		self.Move(DIRECTION.RIGHT_DOWN)
+	def MoveRightDown(self, _map):
+		self.Move(DIRECTION.RIGHT_DOWN, _map)
 
 
 class DIRECTION:
