@@ -11,6 +11,7 @@ SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
 WALL_COLOR = (200, 200, 200) 
 VISIBLE_COLOR = (100, 100, 100)
+LIGHT_COLOR = (255, 255, 102)
 
 class Hider():
     def __init__(self, position):
@@ -60,14 +61,9 @@ class Map():
     #Erase hider to remain number
     def level1(self):
         num_hider = len(self.list_hider)
-        if num_hider > 1:
-            for i in range(self.width):
-                    for j in range(self.length):
-                        if self.__map[i][j] == '2':
-                            num_hider -= 1
-                            self.__map[i][j] = '0'
-                            if num_hider == 1:
-                                return  
+        while num_hider > 1:
+            self.list_hider.pop()
+            num_hider -= 1
     #Create object
     def generate_object(self, object: tuple):
         top, left, bottom, right = object
@@ -147,16 +143,23 @@ class Map():
                     win, SEEKER_COLOR, (seeker_pos[1] * TILE_SIZE, seeker_pos[0] * TILE_SIZE
                     , TILE_SIZE - 2, TILE_SIZE - 2)
                 )
+        def draw_seen(list_visible):
+            for seen in list_visible:
+                pygame.draw.rect(
+                        win, LIGHT_COLOR, (seen[1] * TILE_SIZE, seen[0] * TILE_SIZE
+                        , TILE_SIZE - 2, TILE_SIZE - 2)
+                    )
         # game loop
         while True:
             # escape condition
-            # for event in pygame.event.get():
-            #     if event.type == pygame.QUIT:
-            #         pygame.quit()
-            #         sys.exit(0)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
             # draw 2D map
             win.fill((0, 0, 0))
             draw_map()
+            draw_seen(self.seeker.checkVision(self.__map))
             draw_hider(self.list_hider)
             draw_seeker(self.seeker.position)
             # update display

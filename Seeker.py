@@ -121,6 +121,8 @@ class Seeker:
 					continue
 				if __map[x + dx][y + dy] == '1':
 					for pos in DARK_CELL[(dx, dy)]:
+						if x + pos[0] < 0 or x + pos[0] >= r or y + pos[1] < 0 or y + pos[1] >= c:
+							continue
 						__map[x + pos[0]][y + pos[1]] = 'D'
 
 	
