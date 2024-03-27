@@ -54,7 +54,7 @@ class Map():
                         seeker_pos = (col, row)
             #Assign the seeker
             if seeker_pos != (-1, -1):
-                self.seeker = Seeker(len(self.list_hider), seeker_pos)
+                self.seeker = Seeker(len(self.list_hider), seeker_pos, self.__map)
             i += 1 #object's line's index
             for j in range(i, len(lines)):
                 self.generate_object(tuple(map(int, lines[j].split())))
@@ -105,7 +105,7 @@ class Map():
             row = random.randint(0, self.width - 1)
             col = random.randint(0, self.length - 1)
             if self.__map[row][col] == '0':
-                self.seeker = Seeker(num_hiders + num_hider, (row, col))
+                self.seeker = Seeker(num_hiders + num_hider, (row, col), self.__map)
                 self.__map[row][col] = '3'
     #Get square's value
     def __getitem__(self, position):
@@ -143,7 +143,7 @@ class Map():
                     pygame.draw.rect (
                         win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
-                for pos in self.seeker.checkVision(_map):
+                for pos in self.seeker.checkVision():
                     if pos == self.seeker.position:
                         continue 
                     pygame.draw.rect (
@@ -172,7 +172,7 @@ class Map():
         #                 , TILE_SIZE - 2, TILE_SIZE - 2)
         #             )
        
-        path = self.seeker.GoTo((9, 24), self.__map)  
+        path = self.seeker.GoTo((9, 24))  
         scene = 0
         # game loop
         while True:
@@ -182,7 +182,7 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
 
-            self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]), self.__map)
+            self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
             # draw 2D map
             draw_map(self.__map)
             
@@ -190,7 +190,6 @@ class Map():
             # draw_seen(self.seeker.checkVision(self.__map))
             # draw_hider(self.list_hider)
             # draw_seeker(self.seeker.position)
-            
             # update display
             pygame.display.flip()
             # set FPS
