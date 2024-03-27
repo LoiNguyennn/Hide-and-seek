@@ -42,46 +42,46 @@ class Seeker:
 		self.visited = []
 		self.seen = []
 
-	def mapSweeping(self, _map):
-		#check all reachable position,if see hider choose else choose the one that has the most not visited position in vision
-		#if seek multiple hiders, return a list of hiders' position
-		r = len(_map)
-		c = len(_map[0])
-		x, y = self.position
-		#a list of hiders' position
-		steps = []
-		max_cnt = 0
-		new_pos = (-1, -1)
-		for dir in DIRECTION.LIST_DIR:
-			v = (x + dir[0], y + dir[1])
-			if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
-				continue
-			if _map[v[0]][v[1]] == '2':
-				steps.append(v)
-			if _map[v[0]][v[1]] != '0':
-				continue
-			if v not in self.visited:
-				#save the number of not seen position in vision of v
-				cnt = self.checkVisionXY(_map, v[0], v[1])
-				if cnt > max_cnt:
-					max_cnt = cnt
-					new_pos = v
+	# def mapSweeping(self, _map):
+	# 	#check all reachable position,if see hider choose else choose the one that has the most not visited position in vision
+	# 	#if seek multiple hiders, return a list of hiders' position
+	# 	r = len(_map)
+	# 	c = len(_map[0])
+	# 	x, y = self.position
+	# 	#a list of hiders' position
+	# 	steps = []
+	# 	max_cnt = 0
+	# 	new_pos = (-1, -1)
+	# 	for dir in DIRECTION.LIST_DIR:
+	# 		v = (x + dir[0], y + dir[1])
+	# 		if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
+	# 			continue
+	# 		if _map[v[0]][v[1]] == '2':
+	# 			steps.append(v)
+	# 		if _map[v[0]][v[1]] != '0':
+	# 			continue
+	# 		if v not in self.visited:
+	# 			#save the number of not seen position in vision of v
+	# 			cnt = self.checkVisionXY(_map, v[0], v[1])
+	# 			if cnt > max_cnt:
+	# 				max_cnt = cnt
+	# 				new_pos = v
 
-		if len(steps) > 0:
-			return steps 
+	# 	if len(steps) > 0:
+	# 		return steps 
 		
-		if new_pos == (-1, -1):
-			#choose the one that has the most not visited position in the map
-			for i in range(r):
-				for j in range(c):
-					if _map[i][j] == '0' and (i, j) not in self.visited:
-						cnt = self.checkVision(_map)
-						if cnt > max_cnt:
-							max_cnt = cnt
-							new_pos = (i, j)
+	# 	if new_pos == (-1, -1):
+	# 		#choose the one that has the most not visited position in the map
+	# 		for i in range(r):
+	# 			for j in range(c):
+	# 				if _map[i][j] == '0' and (i, j) not in self.visited:
+	# 					cnt = self.checkVision(_map)
+	# 					if cnt > max_cnt:
+	# 						max_cnt = cnt
+	# 						new_pos = (i, j)
 
-		steps.append(new_pos)
-		return steps
+	# 	steps.append(new_pos)
+	# 	return steps
 
 	
 	def makingDecisionLV2(self, _map):
@@ -116,8 +116,9 @@ class Seeker:
 							new_pos = (i, j)
 		return new_pos
 			
-	def markSeen(self, _map):
+	def markSeen(self, __map):
 		# mark all position in vision as seen
+		_map = deepcopy(__map)
 		x, y = self.position
 		r = len(_map)
 		c = len(_map[0])
@@ -155,7 +156,6 @@ class Seeker:
 							continue
 						__map[x + pos[0]][y + pos[1]] = 'D'
 
-	
 		for dx in range(-3, 4):
 			for dy in range(-3, 4):
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
