@@ -1,4 +1,5 @@
 from queue import Queue
+from queue import PriorityQueue
 from copy import deepcopy
 
 class Seeker:
@@ -131,7 +132,7 @@ class Seeker:
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
 				if __map[x + dx][y + dy] == '0':
-					visible.append((x + dx, y + dy)) # including empty cells, walls and hiders	
+					visible.append((x + dx, y + dy))
 		return visible
 
 	def checkVisionXY(self, x, y):
@@ -193,6 +194,43 @@ class Seeker:
 							return path
 		return path
 
+	def Scheduling(self):
+		_map = deepcopy(self.map)
+		r = len(_map)
+		c = len(_map[0])
+
+		visible_pos = dict()
+		pq = PriorityQueue(0)
+		for i in range(r):
+			for j in range(c):
+				if _map[i][j] == 'x' or _map[i][j] == '1':
+					continue
+				if _map[i][j] == '0':
+					backup_pos = self.position
+					self.position = (i, j) # fake
+					visible = self.checkVision()
+					self.position = backup_pos
+					pq.put( ( -1 * len(visible), (i,j) ) )
+					visible_pos[(i, j)] = visible
+		schedule = []
+		while not pq.empty():
+			num_visible, pos = pq.get()
+			if _map[pos[0]][pos[1]] == 'x':
+				continue
+			schedule.append(pos)
+			for i, j in visible_pos[pos]:
+				_map[i][j] = 'x'
+		
+		return schedule
+
+	def Go4Checking(self):
+		schedule = self.Scheduling()
+		for target in schedule:
+			path = self.GoTo(target)
+			for pos in path:
+				print(pos)
+				self.Move((pos[0] - self.position[0], pos[1] - self.position[1]))
+
 	def Move(self, DIR):
 		r = len(self.map)
 		c = len(self.map[0])
@@ -204,12 +242,13 @@ class Seeker:
 		if x < 0 or x >= r or y < 0 or y >= c:
 			return False
 
+		if self.map[x][y] == '2':
+			self.map[x][y] = '0'
+			self.num_hiders_left -= 1
 		self.map[self.position[0]][self.position[1]], self.map[x][y] = self.map[x][y], self.map[self.position[0]][self.position[1]]
 		self.position = (x, y)
-
 		self.markSeen()
-		if self.map[x][y] == '2':
-			self.num_hiders_left -= 1
+
 
 class DIRECTION:
 	LEFT = (0, -1)

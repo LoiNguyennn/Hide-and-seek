@@ -4,6 +4,7 @@ import pygame
 import threading
 import time
 import sys
+import threading
 from Seeker import *
 MAX_POINT = 1000000
 TILE_SIZE = 30
@@ -126,18 +127,18 @@ class Map():
         pygame.display.set_caption('Hide and seek')
         clock = pygame.time.Clock()
 
-        def draw_map(_map):
+        def draw_map():
             for row in range(self.width):
                 for col in range(self.length):
                     # draw map in the game window
                     color = (0,0,0)
-                    if _map[row][col] == '0':
+                    if self.__map[row][col] == '0':
                         color = GROUND_COLOR
-                    elif _map[row][col] == '1':
+                    elif self.__map[row][col] == '1':
                         color = WALL_COLOR
-                    elif _map[row][col] == '2':
+                    elif self.__map[row][col] == '2':
                         color = HIDER_COLOR
-                    elif _map[row][col] == '3':
+                    elif self.__map[row][col] == '3':
                         color = SEEKER_COLOR
                     
                     pygame.draw.rect (
@@ -149,31 +150,7 @@ class Map():
                     pygame.draw.rect (
                         win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
-            
-            # for pos in self.seeker.checkVision(self.__map):
-            #     pygame.draw.rect (
-            #         win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-            #     )
-            
-        # def draw_hider(list_hider):
-        #     for hider in list_hider:
-        #         pygame.draw.rect(
-        #                 win, HIDER_COLOR, (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-        #             )
-        # def draw_seeker(seeker_pos):
-        #     pygame.draw.rect(
-        #             win, SEEKER_COLOR, (seeker_pos[1] * TILE_SIZE, seeker_pos[0] * TILE_SIZE
-        #             , TILE_SIZE - 2, TILE_SIZE - 2)
-        #         )
-        # def draw_seen(list_visible):
-        #     for seen in list_visible:
-        #         pygame.draw.rect(
-        #                 win, LIGHT_COLOR, (seen[1] * TILE_SIZE, seen[0] * TILE_SIZE
-        #                 , TILE_SIZE - 2, TILE_SIZE - 2)
-        #             )
        
-        path = self.seeker.GoTo((9, 24))  
-        scene = 0
         # game loop
         while True:
             # escape condition
@@ -182,11 +159,12 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
 
-            self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
-            # draw 2D map
-            draw_map(self.__map)
+            seeker_act = threading.Thread(target=self.seeker.Go4Checking)
+            draw_thread = threading.Thread(target=draw_map)
             
-            scene += 1
+            seeker_act.start()
+            draw_thread.start()
+            
             # draw_seen(self.seeker.checkVision(self.__map))
             # draw_hider(self.list_hider)
             # draw_seeker(self.seeker.position)
