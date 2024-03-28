@@ -11,7 +11,7 @@ class Seeker:
 		self.seen = []
 	
 	def evaluate(self, x, y):
-		ret = (abs(self.position[0] - x) + abs(self.position[1] - y)) - self.checkVisionXY(x, y)*0.2
+		ret = (abs(self.position[0] - x) + abs(self.position[1] - y)) - self.checkVisionXY(x, y)
 		#if the position is hider, return 0
 		if self.map[x][y] == '2':
 			return 0
