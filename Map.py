@@ -6,7 +6,7 @@ import time
 import sys
 import threading
 from Seeker import *
-from Hider import *
+# from Hider import *
 TILE_SIZE = 15
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
@@ -30,6 +30,7 @@ def check_file(file_name):
     
 class Map():
     def __init__(self, file_name):
+        self.point = 0
         self.list_hider = list()
         self.__map = list()
         try:
@@ -43,13 +44,16 @@ class Map():
         for i in range(1, self.width + 1):
             self.__map.append(lines[i].split())
         #Find all the hiders and seeker
+        seeker_pos = None
         for col in range(self.width):
             for row in range(self.length):
-                if self.__map[col][row] == '2':
+                if self[(col, row)] == '2':
                     self.list_hider.append(Hider((col, row)))
-                elif self.__map[col][row] == '3':
-                    # self.__map[col][row] = '0'
-                    self.seeker = Seeker(len(self.list_hider), (col, row), self.__map)
+                elif self[(col, row)] == '3':
+                    seeker_pos = (col, row)
+        #Assign seeker
+        if seeker_pos != None:
+            self.seeker = Seeker(len(self.list_hider), seeker_pos, self.__map)
         #Generate additional objects
         for j in range(i + 1, len(lines)):
             self.generate_object(tuple(map(int, lines[j].split())))
@@ -59,6 +63,7 @@ class Map():
         while num_hider > 1:
             self[self.list_hider.pop().position] = '0'
             num_hider -= 1
+        self.seeker = Seeker(1, self.seeker.position, self.__map)
     #Create object
     def generate_object(self, object: tuple):
         top, left, bottom, right = object
@@ -88,7 +93,18 @@ class Map():
     def __setitem__(self, position, value: int):
         row, col = position
         self.__map[row][col] = value
-    #map's gui
+        #Update map after each move
+    #Update mobs position on map
+    # def assign_map_mobs(self, seeker_pos = None) -> list:
+    #     copy_map = [row[:] for row in self.__map]
+    #     for hider in self.list_hider:
+    #         copy_map[hider.position[0]][hider.position[1]] = '2'
+    #     if seeker_pos == None:
+    #         copy_map[self.seeker.position[0]][self.seeker.position[1]] = '3'
+    #     else:
+    #         copy_map[seeker_pos[0]][seeker_pos[1]] = '3'
+    #     return copy_map
+    #map's GUI
     def display_game(self):
         # init pygame:
         pygame.init()
@@ -103,7 +119,7 @@ class Map():
             for row in range(self.width):
                 for col in range(self.length):
                     # draw map in the game window
-                    if self.__map[row][col] == '0':
+                    if self[(row, col)] == '0':
                         color = GROUND_COLOR
                     else:
                         color = WALL_COLOR
@@ -125,8 +141,6 @@ class Map():
                 pygame.draw.rect (
                     win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
-        # points = self.seeker.mapSweeping()
-        # scene = 0
         # # game loop
         while True:
             # escape condition
@@ -134,9 +148,6 @@ class Map():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit(0)
-            # if scene < len(points):
-            #     self.seeker.position = points[scene]
-            #     scene += 1
             draw_map()
             draw_seen(self.seeker)
             draw_hiders(self.list_hider)
@@ -144,49 +155,35 @@ class Map():
             
             pygame.display.flip()
             # set FPS
-            clock.tick(2)
+            clock.tick(30)
+    #Delete caught hider
     def remove_hider(self, position):
             for hider in self.list_hider:
                 if hider.position == position:
                     self.list_hider.remove(hider)
+    #Update state after each step
     def update_state(self):
         while self.seeker.num_hiders_left > 0:
-            points = self.seeker.greedySearch()
-            for point in points:
-                path = self.seeker.GoTo(point)
-                for step in path:
-                    self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
-                    if self.__map[step[0]][step[1]] == '2':
-                        self.remove_hider(step)
-                        self.__map[step[0]][step[1]] = '0'
-                        self.seeker.num_hiders_left -= 1
-                        self.point += 20
-                    else:
-                        self.seeker.point -= 1
-                    time.sleep(0.2)
-
-
-
+            path = self.seeker.GoTo(self.seeker.greedySearch())
+            for step in path:
+                self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
+                if self[step] == '2':
+                    self.remove_hider(step)
+                    self[step] = '3'
+                    self.point += 20
+                else:
+                    self.point -= 1
+                time.sleep(0.2)
+    #PLAY
     def run_game(self):
-        # Initialize Pygame
-        pygame.init()
-
         # Create and start the display_game thread
-        display_thread = threading.Thread(target=self.display_game)
+        display_thread = threading.Thread(target=self.display_game, daemon=True)
         display_thread.start()
 
-        # Create and start the update_seeker thread
-        seeker_thread = threading.Thread(target=self.update_state)
-        seeker_thread.start()
-
-
-        # Wait for both threads to finish
+        # Loop through each hider and create an update_seeker thread
+        self.update_state()
+        # Join the display_game thread after all update_seeker threads have finished
         display_thread.join()
-        seeker_thread.join()
-
-        # Once threads are finished, quit Pygame
-        pygame.quit()
-        sys.exit(0)
 
 
 class HideAndSeek():
@@ -204,8 +201,8 @@ class HideAndSeek():
         self.__point = 0
 
     def run_game(self):
-       # self.__map.run_game()
-        self.__map.display_game()
+       self.__map.run_game()
+        # self.__map.display_game()
         
 ###test run game:
         

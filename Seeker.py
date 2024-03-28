@@ -215,9 +215,10 @@ class Seeker:
 			return False
 
 		if self.map[x][y] == '2':
-			self.map[x][y] = '0'
+			self.map[self.position[0]][self.position[1]] = '0'
 			self.num_hiders_left -= 1
-		self.map[self.position[0]][self.position[1]], self.map[x][y] = self.map[x][y], self.map[self.position[0]][self.position[1]]
+		else:
+			self.map[self.position[0]][self.position[1]], self.map[x][y] = self.map[x][y], self.map[self.position[0]][self.position[1]]
 		self.position = (x, y)
 		self.markSeen()
 
