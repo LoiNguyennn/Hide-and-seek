@@ -9,8 +9,8 @@ from Seeker import *
 TILE_SIZE = 30
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
-WALL_COLOR = (200, 200, 200) 
-GROUND_COLOR = (100, 100, 100)
+WALL_COLOR = (0, 0, 0) 
+GROUND_COLOR = (200, 200, 200) 
 LIGHT_COLOR = (255, 255, 102)
 ALERT_COLOR = (168, 208, 141)
 
@@ -138,8 +138,8 @@ class Map():
 
             draw_map()
             if scene < len(path):
-                self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
-                scene += 1
+               self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
+               scene += 1
             # draw_seen(self.seeker.checkVision(self.__map))
             # draw_hider(self.list_hider)
             # draw_seeker(self.seeker.position)
