@@ -68,16 +68,17 @@ class Seeker:
 		r = len(_map)
 		c = len(_map[0])
 		dp = []
-		for i in range(r):
+		for i in range(1 << len(schedule)):
 			dp.append([])
-			for j in range(c):
-				dp[i].append(100000)
-		#dp[bitmask][prev][next] = min distance from current_position to goal
-		#initialize dp array
+			for j in range(len(schedule) + 2):
+				dp[i].append([100000] * (len(schedule) + 2))
+
+		# Initialize dp array
 		start = len(schedule) + 1
 		for i in range(len(schedule)):
-			dp[1 << i][start][i] = len(self.GoTo(schedule[i]))
-		
+			value = self.GoToXY(self.position, schedule[i])
+			dp[1 << i][start][i] = value
+
 		#dp
 		best_last = -1
 		best_prev = -1
@@ -89,7 +90,7 @@ class Seeker:
 				for next in range(len(schedule)):
 					if (mask & (1 << next)) != 0:
 						continue
-					dp[mask | (1 <<next)][prev][next] = min(dp[mask | (1 << next)][prev][next], dp[mask][prev][next] + len(self.GoTo(schedule[prev], schedule[next])))
+					dp[mask | (1 <<next)][prev][next] = min(dp[mask | (1 << next)][prev][next], dp[mask][prev][next] + self.GoToXY(schedule[prev], schedule[next]))
 					if (dp[mask | (1 << next)][prev][next] < best_result):
 						best_result = dp[mask | (1 << next)][prev][next]
 						best_last = next
@@ -103,7 +104,7 @@ class Seeker:
 			tmp = best_last
 			best_last = best_prev
 			for prev in range(len(schedule)):
-				if (mask & (1 << prev)) != 0 and dp[mask][prev][tmp] + len(self.GoTo(schedule[prev], schedule[tmp])) == dp[mask][prev][tmp]:
+				if (mask & (1 << prev)) != 0 and dp[mask][prev][tmp] + self.GoToXY(schedule[prev], schedule[tmp]) == dp[mask][prev][tmp]:
 					best_prev = prev
 					mask = mask ^ (1 << tmp)
 					break
@@ -214,9 +215,9 @@ class Seeker:
 					num_not_seen += 1
 		return num_not_seen
 	
-	def GoTo(self, start, goal):
+	def GoToXY(self, start, goal):
     # go from start to goal, return path from start to goal
-		_map = deepcopy(map)
+		_map = deepcopy(self.map)
 		r = len(_map)
 		c = len(_map[0])
 
@@ -245,8 +246,8 @@ class Seeker:
 								path.append(v)
 								v = par[v]
 							path.reverse()
-							return path
-		return path
+							return len(path)
+		return len(path)
 
 
 	def GoTo(self, position):
