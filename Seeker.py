@@ -59,7 +59,60 @@ class Seeker:
 							min_evaluate = evaluate
 							next_pos = (i, j)
 		return next_pos
+	
+	def dpBitmask(self):
+		#using dynamic programming and scheduling, goto function to find the best path to all points in scheduling
+		#initialize dp array
+		_map = deepcopy(self.map)
+		schedule = self.Scheduling()
+		r = len(_map)
+		c = len(_map[0])
+		dp = []
+		for i in range(r):
+			dp.append([])
+			for j in range(c):
+				dp[i].append(100000)
+		#dp[bitmask][prev][next] = min distance from current_position to goal
+		#initialize dp array
+		start = len(schedule) + 1
+		for i in range(len(schedule)):
+			dp[1 << i][start][i] = len(self.GoTo(schedule[i]))
 		
+		#dp
+		best_last = -1
+		best_prev = -1
+		best_result = 100000
+		for mask in range(1, 1 << len(schedule)):
+			for prev in range(len(schedule)):
+				if (mask & (1 << prev)) == 0:
+					continue
+				for next in range(len(schedule)):
+					if (mask & (1 << next)) != 0:
+						continue
+					dp[mask | (1 <<next)][prev][next] = min(dp[mask | (1 << next)][prev][next], dp[mask][prev][next] + len(self.GoTo(schedule[prev], schedule[next])))
+					if (dp[mask | (1 << next)][prev][next] < best_result):
+						best_result = dp[mask | (1 << next)][prev][next]
+						best_last = next
+						best_prev = prev
+
+		#reconstruct path
+		path = []
+		mask = (1 << len(schedule)) - 1
+		while mask != 0:
+			path.append(schedule[best_last])
+			tmp = best_last
+			best_last = best_prev
+			for prev in range(len(schedule)):
+				if (mask & (1 << prev)) != 0 and dp[mask][prev][tmp] + len(self.GoTo(schedule[prev], schedule[tmp])) == dp[mask][prev][tmp]:
+					best_prev = prev
+					mask = mask ^ (1 << tmp)
+					break
+		path.reverse()
+		return path
+		
+
+											  
+				
 		
 			
 	def markSeen(self):
@@ -160,6 +213,41 @@ class Seeker:
 				if __map[x + dx][y + dy] == '0' and (x + dx, y + dy) not in self.seen:
 					num_not_seen += 1
 		return num_not_seen
+	
+	def GoTo(self, start, goal):
+    # go from start to goal, return path from start to goal
+		_map = deepcopy(map)
+		r = len(_map)
+		c = len(_map[0])
+
+		path = []
+		q = Queue(0)
+		q.put(start)
+		par = {
+			start: (-1, -1)
+		}
+		visited = {
+			start: True
+		}
+		while not q.empty():
+			u = q.get()
+			for dir in [(0, 1), (1, 0), (0, -1), (-1, 0)]:  # Assuming DIRECTION.LIST_DIR is not available
+				v = (u[0] + dir[0], u[1] + dir[1])
+				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
+					continue
+				if _map[v[0]][v[1]] == '0' or _map[v[0]][v[1]] == '2':
+					if v not in visited:
+						visited[v] = True
+						par[v] = u
+						q.put(v)
+						if v == goal:
+							while v != (-1, -1):
+								path.append(v)
+								v = par[v]
+							path.reverse()
+							return path
+		return path
+
 
 	def GoTo(self, position):
 		# go to position, return path from current pos to destination pos
