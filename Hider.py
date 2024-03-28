@@ -1,18 +1,14 @@
 import random
 
-class Position:
+# L1
+class Hider:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-# L1
-class Hider:
-    def __init__(self, position):
-        self.position = position
-
     def announce(self, map):
-        pos_x = self.position.x + random.randint(-1, 1)
-        pos_y = self.position.y + random.randint(-1, 1)
+        pos_x = self.x + random.randint(-1, 1)
+        pos_y = self.y + random.randint(-1, 1)
 
         if pos_x < 0:
             pos_x = 0
@@ -23,7 +19,7 @@ class Hider:
         if pos_y > map.length - 1:
             pos_y = map.length - 1
         
-        return Position(pos_x, pos_y)
+        return (pos_x, pos_y)
 
     # L3
     def move(self, map):
@@ -52,24 +48,24 @@ class Hider:
                 best_moves.append(move)
         
         if best_moves:
-            new_pos = random.choice(best_moves)
-            self.position = new_pos
+            new_x, new_y = random.choice(best_moves)
+            self.x, self.y = new_x, new_y
     
     # L4 ?hiders move then can be wherever?
     def moveObstacles(self, map):
         pushable_obstacles = []
         for dx in range(-2, 2):
             for dy in range(-2, 2):
-                new_pos = (self.x + dx, self.y + dy)
-                if 0 <= new_pos.x < map.width and 0 <= new_pos.y < map.length and map[new_pos.x][new_pos.y] == 1:
-                    pushable_obstacles.append(new_pos)
+                new_pos_x, new_pos_y = (self.x + dx, self.y + dy)
+                if 0 <= new_pos_x < map.width and 0 <= new_pos_y < map.length and map[new_pos_x][new_pos_y] == 1:
+                    pushable_obstacles.append(new_pos_x, new_pos_y)
 
         # random, no algorithm yet
         if pushable_obstacles:
-            obstacle_pos = random.choice(pushable_obstacles)
+            obstacle_pos_x, obstacle_pos_y = random.choice(pushable_obstacles)
             for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                new_obstacle_pos = (obstacle_x + dx, obstacle_y + dy)
-                if 0 <= new_obstacle_pos.x < map.width and 0 <= new_obstacle_pos.y < map.length and map[new_obstacle_pos.x][new_obstacle_pos.y] == 0:
-                    map[obstacle_pos.x][obstacle_pos.y] = 0
-                    map[new_obstacle_pos.x][new_obstacle_pos.y] = map[obstacle_pos.x][obstacle_pos.y]
+                new_obstacle_pos_x, new_obstacle_pos_y = (obstacle_x + dx, obstacle_y + dy)
+                if 0 <= new_obstacle_pos_x < map.width and 0 <= new_obstacle_pos_y < map.length and map[new_obstacle_pos_x][new_obstacle_pos_y] == 0:
+                    map[obstacle_pos_x][obstacle_pos_y] = 0
+                    map[new_obstacle_pos_x][new_obstacle_pos_y] = map[obstacle_pos_x][obstacle_pos_y]
                     return
