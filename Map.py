@@ -151,14 +151,10 @@ class Map():
                     self.list_hider.remove(hider)
     def update_state(self):
         while self.seeker.num_hiders_left > 0:
-            points = self.seeker.mapSweeping(self.__map)
+            points = self.seeker.greedySearch()
             for point in points:
-                path = self.seeker.GoTo(point, self.__map.copy())
+                path = self.seeker.GoTo(point)
                 for step in path:
-                    # for hider in self.list_hider:
-                    #     self.__map[hider.position[0]][hider.position[1]] = '0'
-                    #     hider.move(self.__map.copy())
-                    #     self.__map[hider.position[0]][hider.position[1]] = '2'
                     self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
                     if self.__map[step[0]][step[1]] == '2':
                         self.remove_hider(step)
@@ -166,8 +162,10 @@ class Map():
                         self.seeker.num_hiders_left -= 1
                         self.point += 20
                     else:
-                        self.point -= 1
+                        self.seeker.point -= 1
                     time.sleep(0.2)
+
+
 
     def run_game(self):
         # Initialize Pygame
@@ -180,6 +178,7 @@ class Map():
         # Create and start the update_seeker thread
         seeker_thread = threading.Thread(target=self.update_state)
         seeker_thread.start()
+
 
         # Wait for both threads to finish
         display_thread.join()
