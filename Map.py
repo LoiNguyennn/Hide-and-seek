@@ -151,6 +151,8 @@ class Map():
                         win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
        
+        path = self.seeker.GoTo((9, 24))
+        scene = 0
         # game loop
         while True:
             # escape condition
@@ -159,12 +161,9 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
 
-            seeker_act = threading.Thread(target=self.seeker.Go4Checking)
-            draw_thread = threading.Thread(target=draw_map)
-            
-            seeker_act.start()
-            draw_thread.start()
-            
+            draw_map()
+            self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
+            scene += 1
             # draw_seen(self.seeker.checkVision(self.__map))
             # draw_hider(self.list_hider)
             # draw_seeker(self.seeker.position)
