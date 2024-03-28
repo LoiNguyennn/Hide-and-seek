@@ -137,8 +137,9 @@ class Map():
                     sys.exit(0)
 
             draw_map()
-            self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
-            scene += 1
+            if scene < len(path):
+                self.seeker.Move((path[scene][0] - self.seeker.position[0], path[scene][1] - self.seeker.position[1]))
+                scene += 1
             # draw_seen(self.seeker.checkVision(self.__map))
             # draw_hider(self.list_hider)
             # draw_seeker(self.seeker.position)
