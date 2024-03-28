@@ -31,7 +31,7 @@ class Seeker:
 				continue
 			if v not in self.visited:
 				#save the number of not seen position in vision of v
-				cnt = self.checkVisionXY(_map, v[0], v[1])
+				cnt = self.checkVisionXY(v[0], v[1])
 				if cnt > max_cnt:
 					max_cnt = cnt
 					new_pos = v
