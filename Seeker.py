@@ -11,7 +11,10 @@ class Seeker:
 		self.seen = []
 	
 	def evaluate(self, x, y):
-		ret = abs(self.position[0] - x) + abs(self.position[1] - y) - self.checkVisionXY(x, y)
+		ret = (abs(self.position[0] - x) + abs(self.position[1] - y)) - self.checkVisionXY(x, y)*0.2
+		#if the position is hider, return 0
+		if self.map[x][y] == '2':
+			return 0
 		if self.checkVisionXY(x, y) == 0:
 			ret = 100000
 		return ret
@@ -20,14 +23,14 @@ class Seeker:
 		# return the next position to go
 		# if there is a hider in vision, go to that position
 		# else, go to the position that has the most not visited position in vision
-		_map = deepcopy(self.map)
+		_map = self.map
 		r = len(_map)
 		c = len(_map[0])
 		visible = self.checkVision()
 		#return if there is a hider in vision
-		for pos in visible:
-			if _map[pos[0]][pos[1]] == '2':
-				return pos
+		hider = self.checkHiderInVision()
+		if len(hider) > 0:
+			return hider[0]
 		min_evaluate = 100000
 		next_pos = self.position
 
@@ -38,6 +41,7 @@ class Seeker:
 			if x < 0 or x >= r or y < 0 or y >= c:
 				continue
 			if _map[x][y] == '2':
+				print("Hider in next position")
 				return (x, y)
 			#return the position that has the min evaluate value
 			if _map[x][y] == '0':
@@ -104,6 +108,32 @@ class Seeker:
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
 				if __map[x + dx][y + dy] == '0':
+					visible.append((x + dx, y + dy))
+		return visible
+	
+	def checkHiderInVision(self):
+		_map = deepcopy(self.map)
+		visible = []
+		x, y = self.position[0], self.position[1]
+		r = len(_map)
+		c = len(_map[0])
+		__map = deepcopy(_map)
+
+		for dx in range(-2, 3):
+			for dy in range(-2, 3):
+				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+					continue
+				if __map[x + dx][y + dy] == '1':
+					for pos in DARK_CELL[(dx, dy)]:
+						if x + pos[0] < 0 or x + pos[0] >= r or y + pos[1] < 0 or y + pos[1] >= c:
+							continue
+						__map[x + pos[0]][y + pos[1]] = 'D'
+
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+					continue
+				if __map[x + dx][y + dy] == '2':
 					visible.append((x + dx, y + dy))
 		return visible
 
