@@ -184,19 +184,7 @@ class Map():
         #         else:
         #             self.point -= 1
         #         time.sleep(0.5)
-        while self.seeker.num_hiders_left > 0:
-            path = self.seeker.dpBitmask()
-            for step in path:
-                self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
-                hiders = self.seeker.checkHiderInVision()
-                if self[step] == '2':
-                    self.remove_hider(step)
-                    self[step] = '3'
-                    self.point += 20
-                else:
-                    self.point -= 1
-                time.sleep(0.5)
-    #PLAY
+        path = self.seeker.dpBitmask()
     def run_game(self):
         # Create and start the display_game thread
         display_thread = threading.Thread(target=self.display_game, daemon=True)

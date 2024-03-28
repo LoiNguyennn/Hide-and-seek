@@ -61,59 +61,55 @@ class Seeker:
 		return next_pos
 	
 	def dpBitmask(self):
-		#using dynamic programming and scheduling, goto function to find the best path to all points in scheduling
-		#initialize dp array
 		_map = deepcopy(self.map)
 		schedule = self.Scheduling()
+		start = len(schedule) + 1
 		r = len(_map)
 		c = len(_map[0])
-		dp = []
-		for i in range(1 << len(schedule)):
-			dp.append([])
-			for j in range(len(schedule) + 2):
-				dp[i].append([100000] * (len(schedule) + 2))
+
+		# Initialize dp array with larger initial values
+		dp = [[float('inf')] * (len(schedule) + 2) for _ in range(1 << len(schedule))]
 
 		# Initialize dp array
-		start = len(schedule) + 1
-		for i in range(len(schedule)):
-			value = self.GoToXY(self.position, schedule[i])
-			dp[1 << i][start][i] = value
+		for i in range(0, len(schedule)):
+			dp[1 << i][i] = self.GoToXY(self.position, schedule[i])
+		# Initialize traceback array
+		traceback = [[-1] * (len(schedule) + 2) for _ in range(1 << len(schedule))]
 
-		#dp
-		best_last = -1
-		best_prev = -1
-		best_result = 100000
-		for mask in range(1, 1 << len(schedule)):
-			for prev in range(len(schedule)):
-				if (mask & (1 << prev)) == 0:
-					continue
-				for next in range(len(schedule)):
-					if (mask & (1 << next)) != 0:
-						continue
-					dp[mask | (1 <<next)][prev][next] = min(dp[mask | (1 << next)][prev][next], dp[mask][prev][next] + self.GoToXY(schedule[prev], schedule[next]))
-					if (dp[mask | (1 << next)][prev][next] < best_result):
-						best_result = dp[mask | (1 << next)][prev][next]
-						best_last = next
-						best_prev = prev
+		# Preprocess the dist array
+		dist = []
+		for i in range(0, len(schedule)):
+			dist.append([])
+			for j in range(0, len(schedule)):
+				dist[i].append(self.GoToXY(schedule[i], schedule[j]))
+		# Calculate dp bitmask every position visit once, don't visit start position
+		for mask in range(0, 1 << len(schedule)):
+			print("Mask: ", mask)
+			for i in range(0, len(schedule)):
+				if (mask >> i) & 1:
+					for j in range(0, len(schedule)):
+						if (mask >> j) & 1:
+							if (dp[mask][i] > dp[mask ^ (1 << i)][j] + dist[j][i]):
+								dp[mask][i] = dp[mask ^ (1 << i)][j] + dist[j][i]
+								traceback[mask][i] = j
+		# Print distance matrix
+		for i in range(0, len(schedule)):
+			for j in range(0, len(schedule)):
+				print(dist[i][j], end = " ")
+			print()
+		# Print dp matrix
+		for i in range(0, len(schedule)):
+			for j in range(0, len(schedule)):
+				print(dp[i][j], end = " ")
+			print()
+		# Print traceback matrix
+		for i in range(0, 1<<len(schedule) - 1):
+			for j in range(0, len(schedule)):
+				print(traceback[i][j], end = " ")
+			print()
+			
 
-		#reconstruct path
-		path = []
-		mask = (1 << len(schedule)) - 1
-		while mask != 0:
-			path.append(schedule[best_last])
-			tmp = best_last
-			best_last = best_prev
-			for prev in range(len(schedule)):
-				if (mask & (1 << prev)) != 0 and dp[mask][prev][tmp] + self.GoToXY(schedule[prev], schedule[tmp]) == dp[mask][prev][tmp]:
-					best_prev = prev
-					mask = mask ^ (1 << tmp)
-					break
-		path.reverse()
-		return path
-		
 
-											  
-				
 		
 			
 	def markSeen(self):
