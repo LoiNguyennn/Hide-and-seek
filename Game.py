@@ -6,6 +6,7 @@ import time
 import sys
 import threading
 from Seeker import *
+from GameMenu import *
 # from Hider import *
 TILE_SIZE = 15
 SEEKER_COLOR = (69, 115, 195)
@@ -26,22 +27,17 @@ class Game():
         self.list_hider = list()
         self.__map = list()
         #Input game
-        def read_file(file_name):
-            try:
-                with open(file_name + '.txt', 'r') as file:
-                    return file.readlines()
-            except FileNotFoundError:
-                print(f"The file {file_name} could not be opened.", end = ' ')
-                return None
-        file_name = input("Please enter the name of the map's file: ")
-        lines = read_file(file_name)
-        while lines == None:
-            file_name = input("There something went wrong, please enter file'name again: ")
-            lines = read_file(file_name)
-        self.__level = -1
-        while self.__level < 1 or self.__level > 4:
-            self.__level = int(input("Please input the level of the game: "))
-        #Input map
+        menu = GameMenu()
+        menu.run_menu()
+        self.__level = int(menu.level)
+        file_name = menu.file_name
+        try:
+            with open(file_name, 'r') as file:
+                lines = file.readlines()
+        except FileNotFoundError:
+                with open('map/' + file_name + '.txt', 'r') as file:
+                    lines = file.readlines()
+        # #Input map
         self.width, self.length = (map(int, lines[0].split()))
         for i in range(1, self.width + 1):
             self.__map.append(lines[i].split())
@@ -183,9 +179,10 @@ class Game():
         #             self.point += 20
         #         else:
         #             self.point -= 1
-        #         time.sleep(0.5)
+        #         
 
         path = self.seeker.dpBitmask()
+        time.sleep(0.5)
     
     #LEVEL 3
     def level_3(self):
