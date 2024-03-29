@@ -61,57 +61,56 @@ class Seeker:
 		return next_pos
 	
 	def dpBitmask(self):
-		_map = deepcopy(self.map)
-		schedule = self.Scheduling()
-		start = len(schedule) + 1
-		r = len(_map)
-		c = len(_map[0])
-
-		# Initialize dp array with larger initial values
-		dp = [[float('inf')] * (len(schedule) + 2) for _ in range(1 << len(schedule))]
-
-		# Initialize dp array
-		for i in range(0, len(schedule)):
-			dp[1 << i][i] = self.GoToXY(self.position, schedule[i])
-		# Initialize traceback array
-		traceback = [[-1] * (len(schedule) + 2) for _ in range(1 << len(schedule))]
-
-		# Preprocess the dist array
-		dist = []
-		for i in range(0, len(schedule)):
-			dist.append([])
-			for j in range(0, len(schedule)):
-				dist[i].append(self.GoToXY(schedule[i], schedule[j]))
-		# Calculate dp bitmask every position visit once, don't visit start position
-		for mask in range(0, 1 << len(schedule)):
-			print("Mask: ", mask)
-			for i in range(0, len(schedule)):
-				if (mask >> i) & 1:
-					for j in range(0, len(schedule)):
-						if (mask >> j) & 1:
-							if (dp[mask][i] > dp[mask ^ (1 << i)][j] + dist[j][i]):
-								dp[mask][i] = dp[mask ^ (1 << i)][j] + dist[j][i]
-								traceback[mask][i] = j
-		# Print distance matrix
-		for i in range(0, len(schedule)):
-			for j in range(0, len(schedule)):
-				print(dist[i][j], end = " ")
-			print()
-		# Print dp matrix
-		for i in range(0, len(schedule)):
-			for j in range(0, len(schedule)):
-				print(dp[i][j], end = " ")
-			print()
-		# Print traceback matrix
-		for i in range(0, 1<<len(schedule) - 1):
-			for j in range(0, len(schedule)):
-				print(traceback[i][j], end = " ")
-			print()
+			_map = deepcopy(self.map)
+			schedule = self.Scheduling()
+			r = len(_map)
+			c = len(_map[0])
+			n = len(schedule)
+			#dp[mask][u] is the minimum cost to reach mask state and end at position u
+			dp = [[1000000 for i in range(n)] for j in range(1 << n)]
+			par = [[-1 for i in range(n)] for j in range(1 << n)]
+			#initialize
+			for i in range(n):
+				dp[1 << i][i] = self.GoToXY(self.position, schedule[i])
+			#initialize dist[i][j] is the distance from i to j
+			dist = [[1000000 for i in range(n)] for j in range(n)]
+			for i in range(n):
+				for j in range(n):
+					dist[i][j] = self.GoToXY(schedule[i], schedule[j])
+			#dp
+			for mask in range(1 << n):
+				for u in range(n):
+					if (mask & (1 << u)) == 0:
+						continue
+					for v in range(n):
+						if (mask & (1 << v)) == 0:
+							continue
+						if dp[mask ^ (1 << u)][v] + dist[v][u] < dp[mask][u]:
+							dp[mask][u] = dp[mask ^ (1 << u)][v] + dist[v][u]
+							par[mask][u] = v
+			#find the minimum cost
+			min_cost = 1000000
+			u = -1
+			for i in range(n):
+				if dp[(1 << n) - 1][i] < min_cost:
+					min_cost = dp[(1 << n) - 1][i]
+					u = i
+			#find the path
+			path = []
+			mask = (1 << n) - 1
+			print(min_cost)
+			while u != -1:
+				print(u)
+				path.append(u)
+				v = par[mask][u]
+				mask ^= (1 << u)
+				u = v
+			path.reverse()
+			return path
 			
 
 
-		
-			
+
 	def markSeen(self):
 		# mark all position in vision as seen
 		_map = deepcopy(self.map)
