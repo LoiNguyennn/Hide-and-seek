@@ -19,28 +19,30 @@ class Hider():
     def __init__(self, position):
         self.position = position
 
-def check_file(file_name):
-    try:
-        with open(file_name + '.txt', 'r') as file:
-            return True
-    except FileNotFoundError:
-        return False
-    except IOError:
-        return False
-    
-class Map():
-    def __init__(self, file_name):
+class Game():
+    def __init__(self):
+        #Initialized game
         self.point = 0
         self.list_hider = list()
         self.__map = list()
-        try:
-            with open(file_name + '.txt', 'r') as file:
-                lines = file.readlines()
-        except FileNotFoundError:
-            print(f"The file {file_name} could not be opened.", end = ' ')
-            return False
-        self.width, self.length = (map(int, lines[0].split()))
+        #Input game
+        def read_file(file_name):
+            try:
+                with open(file_name + '.txt', 'r') as file:
+                    return file.readlines()
+            except FileNotFoundError:
+                print(f"The file {file_name} could not be opened.", end = ' ')
+                return None
+        file_name = input("Please enter the name of the map's file: ")
+        lines = read_file(file_name)
+        while lines == None:
+            file_name = input("There something went wrong, please enter file'name again: ")
+            lines = read_file(file_name)
+        self.__level = -1
+        while self.__level < 1 or self.__level > 4:
+            self.__level = int(input("Please input the level of the game: "))
         #Input map
+        self.width, self.length = (map(int, lines[0].split()))
         for i in range(1, self.width + 1):
             self.__map.append(lines[i].split())
         #Find all the hiders and seeker
@@ -51,19 +53,22 @@ class Map():
                     self.list_hider.append(Hider((col, row)))
                 elif self[(col, row)] == '3':
                     seeker_pos = (col, row)
+        if self.__level == 1:
+           self.level1_mobs()
         #Assign seeker
         if seeker_pos != None:
             self.seeker = Seeker(len(self.list_hider), seeker_pos, self.__map)
         #Generate additional objects
         for j in range(i + 1, len(lines)):
             self.generate_object(tuple(map(int, lines[j].split())))
+
     #Erase hider to remain number
-    def level1(self):
+    def level1_mobs(self):
         num_hider = len(self.list_hider)
         while num_hider > 1:
             self[self.list_hider.pop().position] = '0'
             num_hider -= 1
-        self.seeker = Seeker(1, self.seeker.position, self.__map)
+
     #Create object
     def generate_object(self, object: tuple):
         top, left, bottom, right = object
@@ -85,26 +90,25 @@ class Map():
         if bottom < self.width - 1 and left > 0 and self.__map[bottom + 1][left - 1] == '1': #bottom left
             if self.__map[bottom][left - 1] != '1' and self.__map[bottom + 1][left] != '1':
                 self.__map[bottom + 1][left] = '1'
+
     #Get square's value
     def __getitem__(self, position):
         row, col = position
         return self.__map[row][col]
+    
     #Set square's value
     def __setitem__(self, position, value: int):
         row, col = position
         self.__map[row][col] = value
         #Update map after each move
-    #Update mobs position on map
-    # def assign_map_mobs(self, seeker_pos = None) -> list:
-    #     copy_map = [row[:] for row in self.__map]
-    #     for hider in self.list_hider:
-    #         copy_map[hider.position[0]][hider.position[1]] = '2'
-    #     if seeker_pos == None:
-    #         copy_map[self.seeker.position[0]][self.seeker.position[1]] = '3'
-    #     else:
-    #         copy_map[seeker_pos[0]][seeker_pos[1]] = '3'
-    #     return copy_map
-    #map's GUI
+        
+    #Delete caught hider
+    def remove_hider(self, position):
+            for hider in self.list_hider:
+                if hider.position == position:
+                    self.list_hider.remove(hider)
+                    
+    #-----------map's GUI------------#
     def display_game(self):
         # init pygame:
         pygame.init()
@@ -114,7 +118,7 @@ class Map():
         win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption('Hide and seek')
         clock = pygame.time.Clock()
-
+        #drawing funcions
         def draw_map():
             for row in range(self.width):
                 for col in range(self.length):
@@ -123,21 +127,21 @@ class Map():
                         color = GROUND_COLOR
                     else:
                         color = WALL_COLOR
-                    
+                
                     pygame.draw.rect (
                         win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                     )
-        def draw_hiders(list_hiders):
-            for hider in list_hiders:
+        def draw_hiders():
+            for hider in self.list_hider:
                 pygame.draw.rect (
                     win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
-        def draw_seeker(seeker_pos):
+        def draw_seeker():
             pygame.draw.rect (
-                win, SEEKER_COLOR , (seeker_pos[1] * TILE_SIZE, seeker_pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
+                win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
             )
-        def draw_seen(seeker):
-            for pos in seeker.checkVision():
+        def draw_seen():
+            for pos in self.seeker.checkVision():
                 pygame.draw.rect (
                     win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
                 )
@@ -149,21 +153,17 @@ class Map():
                     pygame.quit()
                     sys.exit(0)
             draw_map()
-            draw_seen(self.seeker)
-            draw_hiders(self.list_hider)
-            draw_seeker(self.seeker.position)
+            draw_seen()
+            draw_hiders()
+            draw_seeker()
             
             pygame.display.flip()
             # set FPS
             clock.tick(30)
-    #Delete caught hider
-    def remove_hider(self, position):
-            for hider in self.list_hider:
-                if hider.position == position:
-                    self.list_hider.remove(hider)
-    #Update state after each step
-    
-    def update_state(self):
+   
+    #-------------------------GAME LEVELS-------------------------------------
+    #LEVEL 1 AND 2
+    def level_1_2(self):
         # i = 0
         # while self.seeker.num_hiders_left > 0:
         #     path = self.seeker.GoTo(self.seeker.greedySearch())
@@ -184,37 +184,36 @@ class Map():
         #         else:
         #             self.point -= 1
         #         time.sleep(0.5)
+
         path = self.seeker.dpBitmask()
+    
+    #LEVEL 3
+    def level_3(self):
+        return
+    
+    #LEVEL 4
+    def level_4(self):
+        return
+    
+    #PLAY
     def run_game(self):
         # Create and start the display_game thread
         display_thread = threading.Thread(target=self.display_game, daemon=True)
         display_thread.start()
 
         # Loop through each hider and create an update_seeker thread
-        self.update_state()
+        if self.__level < 3:
+            self.level_1_2()
+        elif self.__level == 3:
+            self.level_3()
+        else:
+            self.level_4()
+
         # Join the display_game thread after all update_seeker threads have finished
         display_thread.join()
 
-
-class HideAndSeek():
-    def __init__(self):
-        #Input Map size
-        file_name = input("Please enter the name of the map's file: ")
-        while check_file(file_name) != True:
-            file_name = input("There something went wrong, please enter file'name again: ")
-        self.__map = Map(file_name)
-        self.__level = -1
-        while self.__level < 1 or self.__level > 4:
-            self.__level = int(input("Please input the level of the game: "))
-        if self.__level == 1:
-           self.__map.level1()
-        self.__point = 0
-
-    def run_game(self):
-       self.__map.run_game()
-        # self.__map.display_game()
         
 ###test run game:
         
-game = HideAndSeek()
+game = Game()
 game.run_game()
