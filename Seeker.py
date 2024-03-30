@@ -296,7 +296,7 @@ class Seeker:
 					self.position = (i, j) # fake
 					visible = self.checkVision()
 					self.position = backup_pos
-					pq.put( ( -1 * len(visible), (i,j) ) )
+					pq.put(( -1 * (( len(visible) + abs(i - r // 2) + abs(j - c // 2) )), (i, j)  ))
 					visible_pos[(i, j)] = visible
 		schedule = []
 		while not pq.empty():

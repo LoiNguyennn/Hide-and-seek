@@ -161,7 +161,6 @@ class Game():
                         for (x, y) in path2:
                             self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
                             if self[(x, y)] == '2':
-                                self[(x, y)] = '3'
                                 self.remove_hider((x, y))
                             self.draw_map()
                             self.draw_mobs()
@@ -184,7 +183,6 @@ class Game():
            
             if i < len(target) - 1:
                 i += 1                                
-            # set FPS
     
     #LEVEL 3
     def level_3(self):
