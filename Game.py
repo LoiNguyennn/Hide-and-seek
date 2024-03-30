@@ -1,5 +1,4 @@
 # global constants
-import random
 import pygame
 import threading
 import time
@@ -28,7 +27,6 @@ class Game():
         self.__map = list()
         #Input game
         menu = GameMenu()
-        menu.run_menu()
         self.__level = int(menu.level)
         file_name = menu.file_name
         try:
@@ -42,7 +40,6 @@ class Game():
         for i in range(1, self.width + 1):
             self.__map.append(lines[i].split())
         #Find all the hiders and seeker
-        seeker_pos = None
         for col in range(self.width):
             for row in range(self.length):
                 if self[(col, row)] == '2':
@@ -52,8 +49,7 @@ class Game():
         if self.__level == 1:
            self.level1_mobs()
         #Assign seeker
-        if seeker_pos != None:
-            self.seeker = Seeker(len(self.list_hider), seeker_pos, self.__map)
+        self.seeker = Seeker(len(self.list_hider), seeker_pos, self.__map)
         #Generate additional objects
         for j in range(i + 1, len(lines)):
             self.generate_object(tuple(map(int, lines[j].split())))
@@ -119,28 +115,17 @@ class Game():
             for row in range(self.width):
                 for col in range(self.length):
                     # draw map in the game window
-                    if self[(row, col)] == '0':
-                        color = GROUND_COLOR
-                    else:
+                    if self[(row, col)] == '1':
                         color = WALL_COLOR
-                
-                    pygame.draw.rect (
-                        win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-                    )
-        def draw_hiders():
+                    else:
+                        color = GROUND_COLOR
+                    pygame.draw.rect (win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+        def draw_mobs():
+            for spot in self.seeker.checkVision():
+                pygame.draw.rect (win, LIGHT_COLOR , (spot[1] * TILE_SIZE, spot[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
             for hider in self.list_hider:
-                pygame.draw.rect (
-                    win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-                )
-        def draw_seeker():
-            pygame.draw.rect (
-                win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-            )
-        def draw_seen():
-            for pos in self.seeker.checkVision():
-                pygame.draw.rect (
-                    win, LIGHT_COLOR , (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2)
-                )
+                pygame.draw.rect (win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+            pygame.draw.rect (win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         # # game loop
         while True:
             # escape condition
@@ -149,10 +134,7 @@ class Game():
                     pygame.quit()
                     sys.exit(0)
             draw_map()
-            draw_seen()
-            draw_hiders()
-            draw_seeker()
-            
+            draw_mobs()
             pygame.display.flip()
             # set FPS
             clock.tick(30)
@@ -162,9 +144,9 @@ class Game():
     def level_1_2(self):
         # i = 0
         # while self.seeker.num_hiders_left > 0:
-        #     path = self.seeker.GoTo(self.seeker.greedySearch())
+        #     path = self.seeker.dpBitmask()
         #     for step in path:
-        #         self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
+        #         self.seeker.GoTo(step)
         #         hiders = self.seeker.checkHiderInVision()
         #         if hiders:
         #             if (i == 1):
@@ -179,10 +161,10 @@ class Game():
         #             self.point += 20
         #         else:
         #             self.point -= 1
-        #         
+        #         time.sleep(0.5)
 
         path = self.seeker.dpBitmask()
-        time.sleep(0.5)
+        
     
     #LEVEL 3
     def level_3(self):
