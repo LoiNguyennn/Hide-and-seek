@@ -98,16 +98,16 @@ class Seeker:
 			#find the path
 			path = []
 			mask = (1 << n) - 1
-			print(min_cost)
 			while u != -1:
 				path.append(u)
 				v = par[mask][u]
 				mask ^= (1 << u)
 				u = v
 			path.reverse()
-			print(path)
-			return path
-			
+			xy_path = []
+			for i in range(n):
+				xy_path.append(schedule[path[i]])
+			return xy_path	
 
 
 
@@ -308,15 +308,7 @@ class Seeker:
 				_map[i][j] = 'x'
 		
 		return schedule
-
-	def Go4Checking(self):
-		schedule = self.Scheduling()
-		for target in schedule:
-			path = self.GoTo(target)
-			for pos in path:
-				print(pos)
-				self.Move((pos[0] - self.position[0], pos[1] - self.position[1]))
-
+	
 	def Move(self, DIR):
 		r = len(self.map)
 		c = len(self.map[0])
@@ -329,10 +321,13 @@ class Seeker:
 			return False
 
 		if self.map[x][y] == '2':
-			self.map[self.position[0]][self.position[1]] = '0'
+			self.map[x][y] = '0'
 			self.num_hiders_left -= 1
-		else:
-			self.map[self.position[0]][self.position[1]], self.map[x][y] = self.map[x][y], self.map[self.position[0]][self.position[1]]
+				
+		tmp = self.map[self.position[0]][self.position[1]]
+		self.map[self.position[0]][self.position[1]] = self.map[x][y]
+		self.map[x][y] = tmp
+
 		self.position = (x, y)
 		self.markSeen()
 
