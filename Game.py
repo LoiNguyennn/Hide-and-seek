@@ -101,6 +101,7 @@ class Game():
             for hider in self.list_hider:
                 if hider.position == position:
                     self.list_hider.remove(hider)
+                    return
                     
     #drawing funcions
     def draw_map(self):
@@ -159,6 +160,9 @@ class Game():
                         path2 = self.seeker.GoTo(location)
                         for (x, y) in path2:
                             self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
+                            if self[(x, y)] == '2':
+                                self[(x, y)] = '3'
+                                self.remove_hider((x, y))
                             self.draw_map()
                             self.draw_mobs()
 
