@@ -291,15 +291,15 @@ class Seeker:
 		pq = PriorityQueue(0)
 		for i in range(r):
 			for j in range(c):
-				if _map[i][j] == 'x' or _map[i][j] == '1':
+				if _map[i][j] == '1':
 					continue
-				if _map[i][j] == '0':
-					backup_pos = self.position
-					self.position = (i, j) # fake
-					visible = self.checkVision()
-					self.position = backup_pos
-					pq.put(( -1 * (( len(visible) + abs(i - r / 2) + abs(j - c / 2) )), (i, j)  ))
-					visible_pos[(i, j)] = visible
+			
+				backup_pos = self.position
+				self.position = (i, j) # fake
+				visible = self.checkVision()
+				self.position = backup_pos
+				pq.put(( -1 * (( len(visible) + abs(i - r / 2) + abs(j - c / 2) )), (i, j)  ))
+				visible_pos[(i, j)] = visible
 		schedule = []
 		while not pq.empty():
 			num_visible, pos = pq.get()
