@@ -249,6 +249,9 @@ class Seeker:
 
 	def GoTo(self, position):
 		# go to position, return path from current pos to destination pos
+		if position == self.position:
+			return []
+	
 		_map = deepcopy(self.map)
 	
 		r = len(_map)
@@ -311,6 +314,37 @@ class Seeker:
 		
 		return schedule
 	
+	def FindBestSpotIndex(self, schedule):
+		r = len(self.map)
+		c = len(self.map[0])
+
+		visited = set()
+		dist = dict()
+		q = Queue()
+		q.put(self.position)
+		dist[self.position] = 0
+		visited.add(self.position)
+		while not q.empty():
+			u = q.get()
+			for dir in DIRECTION.LIST_DIR:
+				if u[0] + dir[0] < 0 or u[0] + dir[0] >= r or u[1] + dir[1] < 0 or u[1] + dir[1] >= c:
+					continue 
+				v = (u[0] + dir[0], u[1] + dir[1])
+				if self.map[v[0]][v[1]] == '1':
+					continue
+				if v not in visited:
+					visited.add(v)
+					dist[v] = dist[u] + 1
+					q.put(v)
+		idx = 0
+		min = 10**7
+		for i in range(len(schedule)):
+			if dist[schedule[i]] < min:
+				min = dist[schedule[i]]
+				idx = i
+		return idx
+		
+
 	def Move(self, DIR):
 		r = len(self.map)
 		c = len(self.map[0])

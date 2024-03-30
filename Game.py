@@ -136,12 +136,13 @@ class Game():
         pygame.display.set_caption('Hide and seek')
 
         target = self.seeker.dpBitmask()
+        print(target)
         canUseDP = True
         if target == None:
             target = self.seeker.Scheduling()
             canUseDP = False
 
-        i = 0
+        best_choice_index = 0
         # # game loop
         while True:
             # escape condition
@@ -153,54 +154,82 @@ class Game():
             if self.seeker.num_hiders_left == 0:
                 time.sleep(3)
                 return
-            if canUseDP == False and i < len(target):
-                max_dist_index = 0
-                max_dist = 0
-                for j in range(i, len(target)):
-                    if abs(target[j][0] - self.seeker.position[0]) + abs(target[j][1] - self.seeker.position[1]) > max_dist:
-                        max_dist_index = j 
-                        max_dist = abs(target[j][0] - self.seeker.position[0]) + abs(target[j][1] - self.seeker.position[1])
-                target[i], target[max_dist_index] = target[max_dist_index], target[i]
+            if canUseDP:
+                path = self.seeker.GoTo(target[best_choice_index])
+                for pos in path:
+                    clock = pygame.time.Clock()
+                    
+                    seen = set()
+                    hiders = self.seeker.checkHiderInVision()
+                    for hider in hiders:
+                        seen.add(hider)
 
-            path = self.seeker.GoTo(target[i])
-            for pos in path:
-                clock = pygame.time.Clock()
-                
-                seen = set()
-                hiders = self.seeker.checkHiderInVision()
-                for hider in hiders:
-                    seen.add(hider)
+                    if hiders:
+                        while len(hiders):
+                            location = hiders.pop(0)
+                            path2 = self.seeker.GoTo(location)
+                            for (x, y) in path2:
+                                self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
+                                if self[(x, y)] == '2':
+                                    self[(x, y)] = '3'
+                                    self.remove_hider((x, y))
+                                self.draw_map()
+                                self.draw_mobs()
 
-                if hiders:
-                    while len(hiders):
-                        location = hiders.pop(0)
-                        path2 = self.seeker.GoTo(location)
-                        for (x, y) in path2:
-                            self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
-                            if self[(x, y)] == '2':
-                                self[(x, y)] = '3'
-                                self.remove_hider((x, y))
-                            self.draw_map()
-                            self.draw_mobs()
+                                for hider in self.seeker.checkHiderInVision():
+                                    if hider not in seen:
+                                        hiders.append(hider)
+                                        seen.add(hider)
 
-                            for hider in self.seeker.checkHiderInVision():
-                                if hider not in seen:
-                                    hiders.append(hider)
-                                    seen.add(hider)
+                                clock.tick(4)
+                                pygame.display.flip()
+                        break
+                    self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                    self.draw_map()
+                    self.draw_mobs()
+                    clock.tick(4)
+                    pygame.display.flip()
+                if best_choice_index < len(target) - 1:
+                    best_choice_index += 1                     
+            else:
+                best_choice_index = self.seeker.FindBestSpotIndex(target)
+                best = target[best_choice_index]
+                target.pop(best_choice_index)
+                path = self.seeker.GoTo(best)
+                for pos in path:
+                    clock = pygame.time.Clock()
+                    
+                    seen = set()
+                    hiders = self.seeker.checkHiderInVision()
+                    for hider in hiders:
+                        seen.add(hider)
 
-                            clock.tick(4)
-                            pygame.display.flip()
-                    if pos != target[i]:
-                        i -= 1
-                    break
-                self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
-                self.draw_map()
-                self.draw_mobs()
-                clock.tick(4)
-                pygame.display.flip()
-           
-            if i < len(target) - 1:
-               i += 1                                
+                    if hiders:
+                        while len(hiders):
+                            location = hiders.pop(0)
+                            path2 = self.seeker.GoTo(location)
+                            for (x, y) in path2:
+                                self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
+                                if self[(x, y)] == '2':
+                                    self[(x, y)] = '3'
+                                    self.remove_hider((x, y))
+                                self.draw_map()
+                                self.draw_mobs()
+
+                                for hider in self.seeker.checkHiderInVision():
+                                    if hider not in seen:
+                                        hiders.append(hider)
+                                        seen.add(hider)
+
+                                clock.tick(4)
+                                pygame.display.flip()
+                        break
+                    self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                    self.draw_map()
+                    self.draw_mobs()
+                    clock.tick(4)
+                    pygame.display.flip()
+
     #LEVEL 3
     def level_3(self):
         return
