@@ -160,30 +160,10 @@ class Game():
     #-------------------------GAME LEVELS-------------------------------------
     #LEVEL 1 AND 2
     def level_1_2(self):
-        # i = 0
-        # while self.seeker.num_hiders_left > 0:
-        #     path = self.seeker.GoTo(self.seeker.greedySearch())
-        #     for step in path:
-        #         self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
-        #         hiders = self.seeker.checkHiderInVision()
-        #         if hiders:
-        #             if (i == 1):
-        #                 i = 0
-        #                 continue
-        #             i+=1
-        #             print("Alert")
-        #             break
-        #         if self[step] == '2':
-        #             self.remove_hider(step)
-        #             self[step] = '3'
-        #             self.point += 20
-        #         else:
-        #             self.point -= 1
-        #         
-
         path = self.seeker.dpBitmask()
-        time.sleep(0.5)
-    
+        print(path)
+
+
     #LEVEL 3
     def level_3(self):
         return

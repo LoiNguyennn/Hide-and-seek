@@ -100,12 +100,12 @@ class Seeker:
 			mask = (1 << n) - 1
 			print(min_cost)
 			while u != -1:
-				print(u)
 				path.append(u)
 				v = par[mask][u]
 				mask ^= (1 << u)
 				u = v
 			path.reverse()
+			print(path)
 			return path
 			
 
