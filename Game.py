@@ -14,6 +14,7 @@ WALL_COLOR = (200, 200, 200)
 GROUND_COLOR = (0, 0, 0) 
 LIGHT_COLOR = (255, 255, 102)
 ALERT_COLOR = (168, 208, 141)
+DOT_COLOR = (210, 15, 233)
 
 class Hider():
     def __init__(self, position):
@@ -113,13 +114,16 @@ class Game():
                 else:
                     color = GROUND_COLOR
                 pygame.draw.rect (self.win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+
     def draw_mobs(self):
         for spot in self.seeker.checkVision():
             pygame.draw.rect (self.win, LIGHT_COLOR , (spot[1] * TILE_SIZE, spot[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         for hider in self.list_hider:
             pygame.draw.rect (self.win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         pygame.draw.rect (self.win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
-   
+        # schedule = self.seeker.Scheduling()
+        # for pos in schedule:
+        #     pygame.draw.rect (self.win, DOT_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
     #-------------------------GAME LEVELS-------------------------------------
     #LEVEL 1 AND 2
     def level_1_2(self):
@@ -132,6 +136,11 @@ class Game():
         pygame.display.set_caption('Hide and seek')
 
         target = self.seeker.dpBitmask()
+        canUseDP = True
+        if target == None:
+            target = self.seeker.Scheduling()
+            canUseDP = False
+
         i = 0
         # # game loop
         while True:
@@ -144,6 +153,14 @@ class Game():
             if self.seeker.num_hiders_left == 0:
                 time.sleep(3)
                 return
+            if canUseDP == False and i < len(target):
+                max_dist_index = 0
+                max_dist = 0
+                for j in range(i, len(target)):
+                    if abs(target[j][0] - self.seeker.position[0]) + abs(target[j][1] - self.seeker.position[1]) > max_dist:
+                        max_dist_index = j 
+                        max_dist = abs(target[j][0] - self.seeker.position[0]) + abs(target[j][1] - self.seeker.position[1])
+                target[i], target[max_dist_index] = target[max_dist_index], target[i]
 
             path = self.seeker.GoTo(target[i])
             for pos in path:
@@ -161,6 +178,7 @@ class Game():
                         for (x, y) in path2:
                             self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
                             if self[(x, y)] == '2':
+                                self[(x, y)] = '3'
                                 self.remove_hider((x, y))
                             self.draw_map()
                             self.draw_mobs()
@@ -182,8 +200,7 @@ class Game():
                 pygame.display.flip()
            
             if i < len(target) - 1:
-                i += 1                                
-    
+               i += 1                                
     #LEVEL 3
     def level_3(self):
         return
