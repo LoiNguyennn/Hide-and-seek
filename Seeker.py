@@ -164,7 +164,7 @@ class Seeker:
 	
 	def checkHiderInVision(self):
 		_map = deepcopy(self.map)
-		visible = []
+		hider_list = []
 		x, y = self.position[0], self.position[1]
 		r = len(_map)
 		c = len(_map[0])
@@ -185,8 +185,8 @@ class Seeker:
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
 				if __map[x + dx][y + dy] == '2':
-					visible.append((x + dx, y + dy))
-		return visible
+					hider_list.append((x + dx, y + dy))
+		return hider_list
 
 	def checkVisionXY(self, x, y):
 		#return the number of not visited position in vision of (x, y)

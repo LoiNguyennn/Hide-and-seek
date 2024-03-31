@@ -5,6 +5,7 @@ import time
 import sys
 import threading
 from Seeker import *
+from Hider import *
 from GameMenu import *
 # from Hider import *
 TILE_SIZE = 15
@@ -15,10 +16,6 @@ GROUND_COLOR = (0, 0, 0)
 LIGHT_COLOR = (255, 255, 102)
 ALERT_COLOR = (168, 208, 141)
 DOT_COLOR = (210, 15, 233)
-
-class Hider():
-    def __init__(self, position):
-        self.position = position
 
 class Game():
     def __init__(self):
@@ -46,7 +43,8 @@ class Game():
         for col in range(self.width):
             for row in range(self.length):
                 if self[(col, row)] == '2':
-                    self.list_hider.append(Hider((col, row)))
+                    id = len(self.list_hider) + 1
+                    self.list_hider.append(Hider((col, row), self.__map, id))
                 elif self[(col, row)] == '3':
                     seeker_pos = (col, row)
         if self.__level == 1:
@@ -181,13 +179,13 @@ class Game():
                                         hiders.append(hider)
                                         seen.add(hider)
 
-                                clock.tick(4)
+                                clock.tick(5)
                                 pygame.display.flip()
                         break
                     self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
                     self.draw_map()
                     self.draw_mobs()
-                    clock.tick(4)
+                    clock.tick(5)
                     pygame.display.flip()
                 if best_choice_index < len(target) - 1:
                     best_choice_index += 1                     
@@ -221,17 +219,22 @@ class Game():
                                         hiders.append(hider)
                                         seen.add(hider)
 
-                                clock.tick(4)
+                                clock.tick(5)
                                 pygame.display.flip()
                         break
                     self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
                     self.draw_map()
                     self.draw_mobs()
-                    clock.tick(4)
+                    clock.tick(5)
                     pygame.display.flip()
+    def getIdHider(self, position):
+        for hider in self.list_hider:
+            if hider.position == position:
+                return hider.id
+        return 0
 
     #LEVEL 3
-    def level_3(self):
+    def level_3(self):  
         return
     
     #LEVEL 4
