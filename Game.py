@@ -1,5 +1,6 @@
 # global constants
 import pygame
+import os
 import threading
 import time
 import sys
@@ -16,6 +17,7 @@ GROUND_COLOR = (0, 0, 0)
 LIGHT_COLOR = (255, 255, 102)
 ALERT_COLOR = (168, 208, 141)
 DOT_COLOR = (210, 15, 233)
+ANNOUNCE_COLOR = (0, 153, 76)
 
 class Game():
     def __init__(self):
@@ -25,6 +27,7 @@ class Game():
         self.point = 0
         self.list_hider = list()
         self.__map = list()
+        self.list_announce = list()
         #Input game
         menu = GameMenu()
         self.__level = int(menu.level)
@@ -122,15 +125,35 @@ class Game():
         # schedule = self.seeker.Scheduling()
         # for pos in schedule:
         #     pygame.draw.rect (self.win, DOT_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+    
+    def announce(self):
+        list_announce = list()
+        for hider_pos in self.list_hider:
+            pos = hider_pos.generate_random_pos(self.width, self.length)
+            list_announce.append(pos)
+            if pos in self.list_hider:
+                continue
+            self.__map[pos[0]][pos[1]] = '-' + str(hider_pos.id + 1)
+        # avoid two different hiders using the same random positions
+        return list_announce
+
+    def show_points(self):
+        font = pygame.font.SysFont('arial', 15)
+        point_text = font.render(f'Point: {self.point}', True, (255, 255, 255))
+        self.win.blit(point_text, (10, self.width * TILE_SIZE + 10))
+
     #-------------------------GAME LEVELS-------------------------------------
     #LEVEL 1 AND 2
     def level_1_2(self):
         # init pygame:
         pygame.init()
-        SCREEN_HEIGHT = self.width * TILE_SIZE
+        pygame.font.init()
+        SCREEN_HEIGHT = self.width * TILE_SIZE + 30
         SCREEN_WIDTH = self.length * TILE_SIZE
+
         # create game window
         self.win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        # self.show_points()
         pygame.display.set_caption('Hide and seek')
 
         target = self.seeker.dpBitmask()
@@ -141,6 +164,9 @@ class Game():
 
         best_choice_index = 0
         visited = [False for _ in range(len(target))]
+
+        step = 0
+        self.point = 100 # initial points
         # # game loop
         while True:
             # escape condition
@@ -171,20 +197,56 @@ class Game():
                                 if self[(x, y)] == '2':
                                     self[(x, y)] = '3'
                                     self.remove_hider((x, y))
+                                    self.point += 20
                                 self.draw_map()
                                 self.draw_mobs()
+                                self.point -= 1
+                                step += 1
+                                if step % 5 == 0:
+                                    if self.list_announce:
+                                        for pos in self.list_announce:
+                                            if pos in self.list_hider:
+                                                self.__map[pos[0]][pos[1]] = '2'
+                                                pygame.draw.rect(self.win, HIDER_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                            else:
+                                                self.__map[pos[0]][pos[1]] = '0'
+                                                pygame.draw.rect(self.win, GROUND_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                    self.draw_mobs()
+                                    self.list_announce.clear()
+                                    self.list_announce = self.announce()
+                                    for pos in self.list_announce:
+                                        pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
 
                                 for hider in self.seeker.checkHiderInVision():
                                     if hider not in seen:
                                         hiders.append(hider)
                                         seen.add(hider)
-
+                            
                                 clock.tick(5)
                                 pygame.display.flip()
+                                self.show_points()
                         break
                     self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                    self.point -= 1
+                    step += 1
                     self.draw_map()
                     self.draw_mobs()
+                    print(f'Step: {step}')
+                    if step % 5 == 0:
+                        if self.list_announce:
+                            for pos in self.list_announce:
+                                if pos in self.list_hider:
+                                    self.__map[pos[0]][pos[1]] = '2'
+                                    pygame.draw.rect (self.win, HIDER_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                else:
+                                    self.__map[pos[0]][pos[1]] = '0'
+                                    pygame.draw.rect (self.win, GROUND_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                        self.draw_mobs()
+                        self.list_announce.clear()
+                        self.list_announce = self.announce()
+                        for pos in self.list_announce:
+                            pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                    self.show_points()
                     clock.tick(5)
                     pygame.display.flip()
                 if best_choice_index < len(target) - 1:
@@ -213,21 +275,58 @@ class Game():
                                 if self[(x, y)] == '2':
                                     self[(x, y)] = '3'
                                     self.remove_hider((x, y))
+                                    self.point += 20
+                                self.point -= 1
+                                step += 1
                                 self.draw_map()
                                 self.draw_mobs()
-
+                                if step % 5 == 0:
+                                    if self.list_announce:
+                                        for pos in self.list_announce:
+                                            if pos in self.list_hider:
+                                                self.__map[pos[0]][pos[1]] = '2'
+                                                pygame.draw.rect(self.win, HIDER_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                            else:
+                                                self.__map[pos[0]][pos[1]] = '0'
+                                                pygame.draw.rect (self.win, GROUND_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                    self.draw_mobs()
+                                    self.list_announce.clear()
+                                    self.list_announce = self.announce()
+                                    for pos in list_announce:
+                                        pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                
                                 for hider in self.seeker.checkHiderInVision():
                                     if hider not in seen:
                                         hiders.append(hider)
                                         seen.add(hider)
+                                self.show_points()
                                 clock.tick(5)
                                 pygame.display.flip()
                         break
                     self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                    self.point -= 1
+                    step += 1
                     self.draw_map()
                     self.draw_mobs()
+                    if step % 5 == 0:
+                        if self.list_announce:
+                            for pos in self.list_announce:
+                                if pos in self.list_hider:
+                                    self.__map[pos[0]][pos[1]] = '2'
+                                    pygame.draw.rect (self.win, HIDER_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                                else:
+                                    self.__map[pos[0]][pos[1]] = '0'
+                                    pygame.draw.rect (self.win, GROUND_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                        self.draw_mobs()
+                        self.list_announce.clear()
+                        self.list_announce = self.announce()
+                        for pos in list_announce:
+                            pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+
+                    self.show_points()
                     clock.tick(5)
                     pygame.display.flip()
+
     def getIdHider(self, position):
         for hider in self.list_hider:
             if hider.position == position:
@@ -238,6 +337,8 @@ class Game():
     def level_3(self):  
        # init pygame:
         pygame.init()
+        pygame.font.init()
+
         SCREEN_HEIGHT = self.width * TILE_SIZE
         SCREEN_WIDTH = self.length * TILE_SIZE
         # create game window
@@ -290,6 +391,7 @@ class Game():
                             self.list_hider[i].Escape()
                         self.draw_map()
                         self.draw_mobs()
+
                         clock.tick(8)      
                         pygame.display.flip()      
                     elif last_seen != (-1, -1):  

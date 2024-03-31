@@ -103,20 +103,19 @@ class Hider:
             self.Move(best_dir)
         return True
 
-    # def announce(self, map):
-    #     pos_x = self.x + random.randint(-1, 1)
-    #     pos_y = self.y + random.randint(-1, 1)
+    def generate_random_pos(self, width, length):
+        list_pos = list()
+        for i in range(-2, 3):
+            for j in range(-2, 3):
+                pos = (self.position[0] + i, self.position[1] + j)
 
-    #     if pos_x < 0:
-    #         pos_x = 0
-    #     if pos_y < 0:
-    #         pos_y = 0
-    #     if pos_x > map.width - 1:
-    #         pos_x = map.width - 1
-    #     if pos_y > map.length - 1:
-    #         pos_y = map.length - 1
+                if (pos[0] >= 0 and pos[0] < width and pos[1] >= 0 and pos[1] < length) and self.map[pos[0]][pos[1]] == '0':
+                    list_pos.append(pos)
         
-    #     return (pos_x, pos_y)
+        if not list_pos:
+            return(self.position)
+        print(len(list_pos))
+        return (list_pos[random.randint(0, len(list_pos) - 1)])
 
     # # L3
     # def move(self, map):
