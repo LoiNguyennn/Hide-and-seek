@@ -97,10 +97,10 @@ class Game():
         
     #Delete caught hider
     def remove_hider(self, position):
-            for hider in self.list_hider:
-                if hider.position == position:
-                    self.list_hider.remove(hider)
-                    return
+        for hider in self.list_hider:
+            if hider.position == position:
+                self.list_hider.remove(hider)
+                return
                     
     #drawing funcions
     def draw_map(self):
@@ -134,13 +134,13 @@ class Game():
         pygame.display.set_caption('Hide and seek')
 
         target = self.seeker.dpBitmask()
-        print(target)
         canUseDP = True
         if target == None:
             target = self.seeker.Scheduling()
             canUseDP = False
 
         best_choice_index = 0
+        visited = [False for _ in range(len(target))]
         # # game loop
         while True:
             # escape condition
@@ -190,9 +190,11 @@ class Game():
                 if best_choice_index < len(target) - 1:
                     best_choice_index += 1                     
             else:
-                best_choice_index = self.seeker.FindBestSpotIndex(target)
-                best = target[best_choice_index]
-                target.pop(best_choice_index)
+                best_choice_index = self.seeker.FindBestSpotIndex(target, visited)
+                if visited[best_choice_index] == False:
+                    best = target[best_choice_index]
+                    visited[best_choice_index] = True
+
                 path = self.seeker.GoTo(best)
                 for pos in path:
                     clock = pygame.time.Clock()
@@ -218,7 +220,6 @@ class Game():
                                     if hider not in seen:
                                         hiders.append(hider)
                                         seen.add(hider)
-
                                 clock.tick(5)
                                 pygame.display.flip()
                         break
@@ -235,7 +236,94 @@ class Game():
 
     #LEVEL 3
     def level_3(self):  
-        return
+       # init pygame:
+        pygame.init()
+        SCREEN_HEIGHT = self.width * TILE_SIZE
+        SCREEN_WIDTH = self.length * TILE_SIZE
+        # create game window
+        self.win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption('Hide and seek')
+
+        spots = self.seeker.Scheduling()
+        visited = [False for _ in range(len(spots))]
+        while True:
+            # escape condition
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+
+            if self.seeker.num_hiders_left == 0:
+                time.sleep(3)
+                return
+
+            closest_spot_index = self.seeker.FindBestSpotIndex(spots, visited)
+            if closest_spot_index == -1:
+                visited = [False for _ in range(len(spots))]
+
+            if spots[closest_spot_index] == self.seeker.position:
+                visited[closest_spot_index] = True
+                continue
+
+            path_to_closest_spot = self.seeker.GoTo(spots[closest_spot_index])
+            clock = pygame.time.Clock()
+            for step in path_to_closest_spot:
+                foundHider = False
+                last_seen = (-1, -1)
+                while True:
+                    # check if on the way to closest spot, are there any hiders
+                    seen_hiders = self.seeker.checkHiderInVision()
+                   
+                    if len(seen_hiders): # if see hider
+                        # choose the closest hider to catch 
+                        foundHider = True 
+                        best_hider_idx = self.seeker.FindBestSpotIndex(seen_hiders)
+                        path_to_best_hider = self.seeker.GoTo(seen_hiders[best_hider_idx])
+                        pos = path_to_best_hider[1]
+                        last_seen = seen_hiders[best_hider_idx]
+                        self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                        if self[pos] == '2':
+                            self[pos] = '3'
+                            self.remove_hider(pos)
+
+                        for i in range(len(self.list_hider)):
+                            self.list_hider[i].Escape()
+                        self.draw_map()
+                        self.draw_mobs()
+                        clock.tick(8)      
+                        pygame.display.flip()      
+                    elif last_seen != (-1, -1):  
+                        path_to_last_seen = self.seeker.GoTo(last_seen)
+                        for step_to_last_seen in path_to_last_seen:
+                            dx = step_to_last_seen[0] - self.seeker.position[0]
+                            dy = step_to_last_seen[1] - self.seeker.position[1]
+                            self.seeker.Move((dx, dy))
+                            for i in range(len(self.list_hider)):
+                                self.list_hider[i].Escape()  
+                            if self[step_to_last_seen] == '2':
+                                self[step_to_last_seen] = '3'
+                                self.remove_hider(step_to_last_seen)    
+                            self.draw_map()
+                            self.draw_mobs()
+                            clock.tick(8)      
+                            pygame.display.flip()         
+                        last_seen = (-1, -1)     
+                        break
+                    else: 
+                        break    
+                if foundHider:    
+                    break
+                else:
+                    self.seeker.Move((step[0] - self.seeker.position[0], step[1] - self.seeker.position[1]))
+                    for i in range(len(self.list_hider)):
+                        self.list_hider[i].Escape() 
+                    self.draw_map()
+                    self.draw_mobs()
+                    clock.tick(8)     
+                    pygame.display.flip()
+                    if step == path_to_closest_spot[-1]:
+                        visited[closest_spot_index] = True
+                
     
     #LEVEL 4
     def level_4(self):

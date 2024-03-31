@@ -314,7 +314,7 @@ class Seeker:
 		
 		return schedule
 	
-	def FindBestSpotIndex(self, schedule):
+	def FindBestSpotIndex(self, schedule, removed = None):
 		r = len(self.map)
 		c = len(self.map[0])
 
@@ -336,9 +336,11 @@ class Seeker:
 					visited.add(v)
 					dist[v] = dist[u] + 1
 					q.put(v)
-		idx = 0
+		idx = -1
 		min = 10**7
 		for i in range(len(schedule)):
+			if removed != None and removed[i]:
+				continue
 			if dist[schedule[i]] < min:
 				min = dist[schedule[i]]
 				idx = i
