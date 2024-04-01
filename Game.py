@@ -381,14 +381,8 @@ class Game():
                             self[pos] = '3'
                             self.remove_hider(pos)
                             self.point += 20
-
-                        for i in range(len(self.list_hider)):
-                            self.list_hider[i].Escape()
                         
                         self.point -= 1
-                        self.win.fill((0, 0, 0))
-                        self.draw_map()
-                        self.draw_mobs()
 
                         steps += 1
                         if steps % 5 == 0:
@@ -398,12 +392,16 @@ class Game():
                                         self.__map[pos[0]][pos[1]] = '2'
                                     else:
                                         self.__map[pos[0]][pos[1]] = '0'
-
-                            self.draw_mobs()
-
                             self.list_announce.clear()
+
+                            for i in range(len(self.list_hider)):
+                                self.list_hider[i].Escape()
                             self.list_announce = self.announce()
 
+                        self.win.fill((0, 0, 0))
+                        self.draw_map()
+                        self.draw_mobs()
+                        
                         clock.tick(8)      
                         pygame.display.flip()      
                     elif last_seen != (-1, -1):  
@@ -420,9 +418,6 @@ class Game():
                                 self.point += 20
 
                             self.point -= 1
-                            self.win.fill((0, 0, 0))
-                            self.draw_map()
-                            self.draw_mobs()
 
                             steps += 1
                             if steps % 5 == 0:
@@ -432,12 +427,13 @@ class Game():
                                             self.__map[pos[0]][pos[1]] = '2'
                                         else:
                                             self.__map[pos[0]][pos[1]] = '0'
-
-                                self.draw_mobs()
-
+                                
                                 self.list_announce.clear()
                                 self.list_announce = self.announce()
 
+                            self.win.fill((0, 0, 0))
+                            self.draw_map()
+                            self.draw_mobs()
                             clock.tick(8)      
                             pygame.display.flip()         
                         last_seen = (-1, -1)     
@@ -452,9 +448,6 @@ class Game():
                         self.list_hider[i].Escape() 
                     
                     self.point -= 1
-                    self.win.fill((0, 0, 0))
-                    self.draw_map()
-                    self.draw_mobs()
 
                     steps += 1
                     if steps % 5 == 0:
@@ -465,11 +458,12 @@ class Game():
                                 else:
                                     self.__map[pos[0]][pos[1]] = '0'
 
-                        self.draw_mobs()
-
                         self.list_announce.clear()
                         self.list_announce = self.announce()
 
+                    self.win.fill((0, 0, 0))
+                    self.draw_map()
+                    self.draw_mobs()
                     clock.tick(8)     
                     pygame.display.flip()
                     if step == path_to_closest_spot[-1]:
