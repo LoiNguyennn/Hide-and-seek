@@ -72,9 +72,11 @@ class Hider:
         if x < 0 or x >= r or y < 0 or y >= c:
             return False
 
-        if self.map[x][y] == '2' or self.map[x][y] == '3':
+        if self.map[x][y] == '1' or self.map[x][y] == '2' or self.map[x][y] == '3':
             return False
         else:
+            self.map[x][y] = '0'
+
             tmp = self.map[self.position[0]][self.position[1]]
             self.map[self.position[0]][self.position[1]] = self.map[x][y]
             self.map[x][y] = tmp

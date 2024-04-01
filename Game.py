@@ -9,7 +9,7 @@ from Seeker import *
 from Hider import *
 from GameMenu import *
 # from Hider import *
-SPEED = 5
+SPEED = 4
 TILE_SIZE = 15
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
@@ -213,9 +213,7 @@ class Game():
                                 if step % 5 == 0:
                                     if self.list_announce:
                                         for pos in self.list_announce:
-                                            if pos in self.list_hider:
-                                                self.__map[pos[0]][pos[1]] = '2'
-                                            else:
+                                            if self.__map[pos[0]][pos[1]][0] == '-':
                                                 self.__map[pos[0]][pos[1]] = '0'
 
                                     self.draw_mobs()
@@ -246,13 +244,13 @@ class Game():
                     self.win.fill((0, 0, 0))
                     self.draw_map()
                     self.draw_mobs()
+
                     if step % 5 == 0:
                         if self.list_announce:
                             for pos in self.list_announce:
-                                if pos in self.list_hider:
-                                    self.__map[pos[0]][pos[1]] = '2'
-                                else:
+                                if self.__map[pos[0]][pos[1]][0] == '-':
                                     self.__map[pos[0]][pos[1]] = '0'
+
                         self.draw_mobs()
                         self.list_announce.clear()
                         self.list_announce = self.announce()
@@ -296,13 +294,13 @@ class Game():
                                 self.win.fill((0, 0, 0))
                                 self.draw_map()
                                 self.draw_mobs()
+                           
                                 if step % 5 == 0:
                                     if self.list_announce:
                                         for pos in self.list_announce:
-                                            if pos in self.list_hider:
-                                                self.__map[pos[0]][pos[1]] = '2'
-                                            else:
+                                            if self.__map[pos[0]][pos[1]][0] == '-':
                                                 self.__map[pos[0]][pos[1]] = '0'
+
                                     self.draw_mobs()
                                     self.list_announce.clear()
                                     self.list_announce = self.announce()
@@ -327,9 +325,7 @@ class Game():
                     if step % 5 == 0:
                         if self.list_announce:
                             for pos in self.list_announce:
-                                if pos in self.list_hider:
-                                    self.__map[pos[0]][pos[1]] = '2'
-                                else:
+                                if self.__map[pos[0]][pos[1]][0] == '-':
                                     self.__map[pos[0]][pos[1]] = '0'
                         self.draw_mobs()
                         self.list_announce.clear()
@@ -399,6 +395,7 @@ class Game():
                         path_to_best_hider = self.seeker.GoTo(seen_hiders[best_hider_idx])
                         pos = path_to_best_hider[0]
                         last_seen = seen_hiders[best_hider_idx]
+
                         self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
                         
                         if self[pos] == '2':
@@ -416,9 +413,7 @@ class Game():
                         if steps % 5 == 0:
                             if self.list_announce:
                                 for pos in self.list_announce:
-                                    if pos in self.list_hider:
-                                        self.__map[pos[0]][pos[1]] = '2'
-                                    else:
+                                    if self.__map[pos[0]][pos[1]][0] == '-':
                                         self.__map[pos[0]][pos[1]] = '0'
                             self.list_announce.clear()
 
@@ -455,11 +450,8 @@ class Game():
                             if steps % 5 == 0:
                                 if self.list_announce:
                                     for pos in self.list_announce:
-                                        if pos in self.list_hider:
-                                            self.__map[pos[0]][pos[1]] = '2'
-                                        else:
+                                        if self.__map[pos[0]][pos[1]][0] == '-':
                                             self.__map[pos[0]][pos[1]] = '0'
-                                
                                 self.list_announce.clear()
                                 self.list_announce = self.announce()
 
@@ -490,11 +482,8 @@ class Game():
                     if steps % 5 == 0:
                         if self.list_announce:
                             for pos in self.list_announce:
-                                if pos in self.list_hider:
-                                    self.__map[pos[0]][pos[1]] = '2'
-                                else:
+                                if self.__map[pos[0]][pos[1]][0] == '-':
                                     self.__map[pos[0]][pos[1]] = '0'
-
                         self.list_announce.clear()
                         self.list_announce = self.announce()
                     ############################################
