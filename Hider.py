@@ -107,14 +107,14 @@ class Hider:
         list_pos = list()
         for i in range(-2, 3):
             for j in range(-2, 3):
+                if i == 0 and j == 0:
+                    continue
                 pos = (self.position[0] + i, self.position[1] + j)
-
                 if (pos[0] >= 0 and pos[0] < width and pos[1] >= 0 and pos[1] < length) and self.map[pos[0]][pos[1]] == '0':
                     list_pos.append(pos)
         
         if not list_pos:
             return(self.position)
-        print(len(list_pos))
         return (list_pos[random.randint(0, len(list_pos) - 1)])
 
     # # L3

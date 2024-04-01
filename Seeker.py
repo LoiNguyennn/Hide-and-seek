@@ -113,29 +113,52 @@ class Seeker:
 
 
 
-	def markSeen(self):
-		# mark all position in vision as seen
-		_map = deepcopy(self.map)
-		x, y = self.position
-		r = len(_map)
-		c = len(_map[0])
-		for dx in range(-2, 3):
-			for dy in range(-2, 3):
-				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
-					continue
-				if _map[x + dx][y + dy] == '1':
-					for pos in DARK_CELL[(dx, dy)]:
-						if x + pos[0] < 0 or x + pos[0] >= r or y + pos[1] < 0 or y + pos[1] >= c:
-							continue
-						_map[x + pos[0]][y + pos[1]] = 'D'
-		for dx in range(-3, 4):
-			for dy in range(-3, 4):
-				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
-					continue
-				if _map[x + dx][y + dy] == '0':
-					self.seen.append((x + dx, y + dy))
+	# def markSeen(self):
+	# 	# mark all position in vision as seen
+	# 	_map = deepcopy(self.map)
+	# 	x, y = self.position
+	# 	r = len(_map)
+	# 	c = len(_map[0])
+	# 	for dx in range(-2, 3):
+	# 		for dy in range(-2, 3):
+	# 			if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+	# 				continue
+	# 			if _map[x + dx][y + dy] == '1':
+	# 				for pos in DARK_CELL[(dx, dy)]:
+	# 					if x + pos[0] < 0 or x + pos[0] >= r or y + pos[1] < 0 or y + pos[1] >= c:
+	# 						continue
+	# 					_map[x + pos[0]][y + pos[1]] = 'D'
+	# 	for dx in range(-3, 4):
+	# 		for dy in range(-3, 4):
+	# 			if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+	# 				continue
+	# 			if _map[x + dx][y + dy] == '0':
+	# 				self.seen.append((x + dx, y + dy))
 
+	def IsSignificantMove(self, next_pos):
+		dummy = Seeker(0, (-1, -1), self.map)
+
+		dummy.position = self.position
+		visiblePosAtCurrent = dummy.checkVision()
+
+		dummy.position = next_pos 
+		visiblePosAtNext = dummy.checkVision()
+
+		if len(visiblePosAtNext) > len(visiblePosAtCurrent):
+			return True 
+		s1 = set()
+		for item in visiblePosAtCurrent:
+			s1.add(item)
+		s2 = set()
+		for item in visiblePosAtNext:
+			s2.add(item)
 		
+		s = s2.difference(s1)
+		if len(s) == 0:
+			return False 
+		return True
+		
+
 	def checkVision(self):
 		_map = deepcopy(self.map)
 		visible = []
@@ -158,7 +181,7 @@ class Seeker:
 			for dy in range(-3, 4):
 				if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
 					continue
-				if __map[x + dx][y + dy] == '0':
+				if __map[x + dx][y + dy] != 'D' and __map[x + dx][y + dy] != '1':
 					visible.append((x + dx, y + dy))
 		return visible
 	
@@ -233,17 +256,18 @@ class Seeker:
 				v = (u[0] + dir[0], u[1] + dir[1])
 				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
 					continue
-				if _map[v[0]][v[1]] == '0' or _map[v[0]][v[1]] == '2':
-					if v not in visited:
-						visited[v] = True
-						par[v] = u
-						q.put(v)
-						if v == goal:
-							while v != (-1, -1):
-								path.append(v)
-								v = par[v]
-							path.reverse()
-							return len(path)
+				if _map[v[0]][v[1]] == '1':
+					continue
+				if v not in visited:
+					visited[v] = True
+					par[v] = u
+					q.put(v)
+					if v == goal:
+						while v != (-1, -1):
+							path.append(v)
+							v = par[v]
+						path.reverse()
+						return len(path)
 		return len(path)
 
 
@@ -272,17 +296,19 @@ class Seeker:
 				v = (u[0] + dir[0], u[1] + dir[1])
 				if v[0] < 0 or v[0] >= r or v[1] < 0 or v[1] >= c:
 					continue 
-				if _map[v[0]][v[1]] == '0' or _map[v[0]][v[1]] == '2':	
-					if v not in visited:
-						visited[v] = True
-						par[v] = u
-						q.put(v)
-						if v == position:
-							while v != (-1, -1):
-								path.append(v)
-								v = par[v]
-							path.reverse()
-							return path
+				if _map[v[0]][v[1]] == '1':
+					continue
+				if v not in visited:
+					visited[v] = True
+					par[v] = u
+					q.put(v)
+					if v == position:
+						while v != (-1, -1):
+							path.append(v)
+							v = par[v]
+						path.reverse()
+						path.pop(0)
+						return path
 		return path
 
 	def Scheduling(self):
@@ -357,18 +383,23 @@ class Seeker:
 		
 		if x < 0 or x >= r or y < 0 or y >= c:
 			return False
+		if self.map[x][y] == '1':
+			return False
 
 		if self.map[x][y] == '2':
 			self.map[self.position[0]][self.position[1]] = '0'
 			self.num_hiders_left -= 1
 		else:
+			# in case (x, y) is announcement
+			self.map[x][y] = '0'
+
 			tmp = self.map[self.position[0]][self.position[1]]
 			self.map[self.position[0]][self.position[1]] = self.map[x][y]
 			self.map[x][y] = tmp
 
 		self.position = (x, y)
-		self.markSeen()
-
+		# self.markSeen()
+		return False
 
 class DIRECTION:
 	LEFT = (0, -1)
