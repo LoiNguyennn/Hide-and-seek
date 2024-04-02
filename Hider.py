@@ -2,6 +2,7 @@ import random
 from copy import deepcopy
 from Seeker import DIRECTION
 from Seeker import DARK_CELL
+from queue import Queue
 
 # L1
 class Hider:
@@ -82,6 +83,32 @@ class Hider:
             self.map[x][y] = tmp
         self.position = (x, y)
 
+    def CalcDist(self, start, dest):
+        r = len(self.map)
+        c = len(self.map[0])
+
+        visited = set()
+        dist = dict()
+        q = Queue(0)
+        q.put(start)
+        dist[start] = 0
+        visited.add(start)
+        while not q.empty():
+            u = q.get()
+            for dir in DIRECTION.LIST_DIR:
+                if u[0] + dir[0] < 0 or u[0] + dir[0] >= r or u[1] + dir[1] < 0 or u[1] + dir[1] >= c:
+                    continue 
+                v = (u[0] + dir[0], u[1] + dir[1])
+                if self.map[v[0]][v[1]] == '1':
+                    continue
+                if v not in visited:
+                    visited.add(v)
+                    dist[v] = dist[u] + 1
+                    if v == dest:
+                        return dist[v]
+                    q.put(v)  
+        return 0
+
     def Escape(self):
         r = len(self.map)
         c = len(self.map[0]) 
@@ -96,8 +123,10 @@ class Hider:
                     continue
                 if self.map[x][y] == '1' or self.map[x][y] == '2' or self.map[x][y] == '3':
                     continue
-                if abs(x - seeker_pos[0]) + abs(y - seeker_pos[0]) > max_dist:
-                    max_dist = abs(x - seeker_pos[0]) + abs(y - seeker_pos[0])
+                dist = self.CalcDist((x, y), seeker_pos)
+
+                if dist > max_dist:
+                    max_dist = dist
                     best_dir = dir
 
             if best_dir == None:
