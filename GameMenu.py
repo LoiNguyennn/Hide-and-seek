@@ -6,20 +6,29 @@ class GameMenu(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("File and Level Selector")
-        self.level = 0
-        self.file_name = ""
+        self.level = None
+        self.file_name = None
+        self.exit = False
         self.create_widgets()
         self.run_menu()
-
     def create_widgets(self):
         self.title('Hide And Seek')
         self.geometry('420x270+600+250')
         self.resizable(width=False, height=False)
-        # Frame for the entry box and its label
-        self.main_lable = tk.Label(text = "\nGAME MENU\n", fg = ('#%02x%02x%02x' % (168, 208, 141)), font=("Helvetica", 16, "bold"))
-        self.main_lable.pack()
+        # Frame to hold the label and button
+        top_frame = tk.Frame(self)
+        top_frame.pack(side=tk.TOP, fill=tk.X)
+
+        # Exit button (NÊN ĐẶT Ở ĐÂU)-------------------------------
+        # self.exit_button = tk.Button(top_frame, text="Exit", command=self.exitGame, width=5, font=("Helvetica", 10, "bold"), bg=('#%02x%02x%02x' % (200, 200, 200)))
+        # self.exit_button.pack(side=tk.LEFT)
+
+        # Main label
+        self.main_label = tk.Label(top_frame, text="\nGAME MENU\n", fg=('#%02x%02x%02x' % (168, 208, 141)), font=("Helvetica", 16, "bold"))
+        self.main_label.pack(side=tk.LEFT, padx=140)
         self.entry_frame = tk.Frame(self)
         self.entry_frame.pack(fill=tk.X)
+        
         # Label for the entry box
         self.input_label = tk.Label(self.entry_frame, text=" Input maps:     ", font=("Helvetica", 10))
         self.input_label.pack(side=tk.LEFT)
@@ -28,9 +37,11 @@ class GameMenu(tk.Tk):
         self.file_name_entry = tk.Entry(self.entry_frame, width=41)
         self.file_name_entry.insert(0, "file's directory path")
         self.file_name_entry.pack(side=tk.LEFT, padx=5)
-        
+
+        #Space
         self.space_label = tk.Label(text = "\n")
         self.space_label.pack()
+
         # Create a button to browse for files
         self.browse_button = tk.Button(self.entry_frame, text="Browse", command=self.browse_file, width = 7, bg = ('#%02x%02x%02x' % (200, 200, 200)))
         self.browse_button.pack(side=tk.LEFT)
@@ -47,22 +58,32 @@ class GameMenu(tk.Tk):
         self.file_label.pack(side=tk.LEFT)
 
         # Create a combobox for file selection
-        self.file_combobox = ttk.Combobox(self.selection_frame, width=22)
+        self.file_combobox = ttk.Combobox(self.selection_frame, width=6)
         self.file_combobox.bind('<<ComboboxSelected>>', self.update_entry_from_combobox)
-        self.file_combobox.pack(side=tk.LEFT, padx=(0, 20))
+        self.file_combobox.pack(side=tk.LEFT, padx=(0, 10))
 
         # Label for the level selection combobox
         self.level_label = tk.Label(self.selection_frame, text="Choose level:", width=10, font=("Helvetica", 10))
         self.level_label.pack(side=tk.LEFT)
 
         # Create a combobox for level selection
-        self.level_combobox = ttk.Combobox(self.selection_frame, values=["1", "2", "3", "4"], state="readonly", width=5)
-        self.level_combobox.pack(side=tk.LEFT)
+        self.level_combobox = ttk.Combobox(self.selection_frame, values=["1", "2", "3", "4"], state="readonly", width=3)
+        self.level_combobox.pack(side=tk.LEFT, padx=(0, 10))
+
+        # Label for the speed box entry box
+        self.level_label = tk.Label(self.selection_frame, text="Speed:", width=6, font=("Helvetica", 10))
+        self.level_label.pack(side=tk.LEFT)
+
+        # Create a combobox for level selection
+        vcmd = (self.register(self.on_validate), '%P')
+        self.speed_entry = ttk.Entry(self.selection_frame, validate="key", validatecommand=vcmd, width = 5)
+        self.speed_entry.insert(0, "2")
+        self.speed_entry.pack(side=tk.LEFT)
 
         # Create an enter button to submit the selections
         self.enter_button = tk.Button(self, text="Enter", command=self.submit, width = 10, font=("Helvetica", 10, "bold"), bg = ('#%02x%02x%02x' % (200, 200, 200)))
         self.enter_button.pack()
-
+        
         self.message_label = tk.Label(self, text="", fg="red")
         self.message_label.pack()
 
@@ -94,6 +115,15 @@ class GameMenu(tk.Tk):
             self.file_name_entry.delete(0, tk.END)
             self.file_name_entry.insert(0, filepath)
 
+    def is_number(self, char):
+        return char.isdigit()
+
+    def on_validate(self, P):
+        if P == "" or P.isdigit():
+            return True
+        else:
+            return False
+
     def check_file(self, file_name):
         try:
             with open(file_name, 'r') as file:
@@ -104,26 +134,98 @@ class GameMenu(tk.Tk):
                     return False
             except FileNotFoundError:
                 return True
-
-
+    #Exit from menu
+    def exitGame(self):
+        self.exit = True
+        self.destroy()
     # Function to submit the selected file name and level
     def submit(self):
         selected_file_name = self.file_name_entry.get()
         selected_level = self.level_combobox.get()
+        selected_speed = self.speed_entry.get()
         foul = 0
-        message = ""
+        message = "\n"
+        
+        # Check if a level is selected
         if not selected_level:
             message += "You haven't chosen a level!\n"
             foul += 1
-        if self.check_file(selected_file_name):
+        
+        # Check if the file name is not 'map' and the file exists
+        if selected_file_name == 'map' or self.check_file(selected_file_name):
             message += "You chose the wrong directory path, please enter again.\n"
             foul += 1
+        
+        # Check if the speed entry is a number and within an acceptable range
+        try:
+            speed = int(selected_speed)
+            if speed < 1 or speed > 10:  # Assuming the speed range is 1 to 5
+                message += "Speed must be a number between 1 and 10.\n"
+                foul += 1
+        except ValueError:
+            message += "Speed must be a number.\n"
+            foul += 1
+        
+        # If no errors, proceed with setting the values and destroying the window
         if foul == 0:
             self.file_name = selected_file_name
             self.level = selected_level
+            self.speed = speed  # Save the speed value
             self.destroy()
         else:
             self.message_label.config(text=message)
+
+    def run_menu(self):
+        self.mainloop()
+
+class EndMenu(tk.Tk):
+    def __init__(self, win, point):
+        super().__init__()
+        self.win = win
+        self.point = point
+        self.create_widget()
+        self.run_menu() 
+    def create_widget(self):
+        self.title('Hide And Seek')
+        self.geometry('250x170+600+250')
+        self.resizable(width=False, height=False)
+
+        # Styling
+        self.style = ttk.Style(self)
+        self.style.configure('TLabel', font=('Arial', 10))
+        self.style.configure('TButton', font=('Arial', 10), background='#c8c8c8')
+
+        # Result label
+        if self.win:
+            message_label = "Win"
+        else:
+            message_label = "Lose"
+        self.m_label = ttk.Label(self, text=f"Result: {message_label}")
+        self.m_label.pack(pady=5)
+
+        # Points label
+        self.p_label = ttk.Label(self, text=f"Points: {self.point}")
+        self.p_label.pack(pady=5)
+
+        # Frame for buttons
+        self.entry_frame = ttk.Frame(self)
+        self.entry_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        # Replay button
+        self.replay_button = ttk.Button(self.entry_frame, text="Replay", command=self.rePlay, width=20)
+        self.replay_button.pack(side=tk.TOP, pady=5)
+
+        # Go back to menu button
+        self.menu_button = ttk.Button(self.entry_frame, text="Go back to menu", command = self.goBackToMainMenu, width=20)
+        self.menu_button.pack()
+
+    def goBackToMainMenu(self):
+        self.goBack = True
+        self.destroy()
+
+    def rePlay(self):
+        self.goBack = False
+        self.destroy()
 
     def run_menu(self):
         self.mainloop()
