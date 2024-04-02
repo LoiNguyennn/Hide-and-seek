@@ -61,55 +61,56 @@ class Seeker:
 		return next_pos
 	
 	def dpBitmask(self):
-			_map = deepcopy(self.map)
-			schedule = self.Scheduling()
-			if len(schedule) >= 30:
-				return None
-			r = len(_map)
-			c = len(_map[0])
-			n = len(schedule)
-			#dp[mask][u] is the minimum cost to reach mask state and end at position u
-			dp = [[1000000 for i in range(n)] for j in range(1 << n)]
-			par = [[-1 for i in range(n)] for j in range(1 << n)]
-			#initialize
-			for i in range(n):
-				dp[1 << i][i] = self.GoToXY(self.position, schedule[i])
-			#initialize dist[i][j] is the distance from i to j
-			dist = [[1000000 for i in range(n)] for j in range(n)]
-			for i in range(n):
-				for j in range(n):
-					dist[i][j] = self.GoToXY(schedule[i], schedule[j])
-			#dp
-			for mask in range(1 << n):
-				for u in range(n):
-					if (mask & (1 << u)) == 0:
+		_map = deepcopy(self.map)
+		schedule = self.Scheduling()
+		if len(schedule) >= 30:
+			return None
+		r = len(_map)
+		c = len(_map[0])
+		n = len(schedule)
+		#dp[mask][u] is the minimum cost to reach mask state and end at position u
+		dp = [[1000000 for i in range(n)] for j in range(1 << n)]
+		par = [[-1 for i in range(n)] for j in range(1 << n)]
+		#initialize
+		for i in range(n):
+			dp[1 << i][i] = self.GoToXY(self.position, schedule[i])
+		#initialize dist[i][j] is the distance from i to j
+		dist = [[1000000 for i in range(n)] for j in range(n)]
+		for i in range(n):
+			for j in range(n):
+				dist[i][j] = self.GoToXY(schedule[i], schedule[j])
+		#dp
+		for mask in range(1 << n):
+			for u in range(n):
+				if (mask & (1 << u)) == 0:
+					continue
+				for v in range(n):
+					if (mask & (1 << v)) == 0:
 						continue
-					for v in range(n):
-						if (mask & (1 << v)) == 0:
-							continue
-						if dp[mask ^ (1 << u)][v] + dist[v][u] < dp[mask][u]:
-							dp[mask][u] = dp[mask ^ (1 << u)][v] + dist[v][u]
-							par[mask][u] = v
-			#find the minimum cost
-			min_cost = 1000000
-			u = -1
-			for i in range(n):
-				if dp[(1 << n) - 1][i] < min_cost:
-					min_cost = dp[(1 << n) - 1][i]
-					u = i
-			#find the path
-			path = []
-			mask = (1 << n) - 1
-			while u != -1:
-				path.append(u)
-				v = par[mask][u]
-				mask ^= (1 << u)
-				u = v
-			path.reverse()
-			xy_path = []
-			for i in range(n):
-				xy_path.append(schedule[path[i]])
-			return xy_path	
+					if dp[mask ^ (1 << u)][v] + dist[v][u] < dp[mask][u]:
+						dp[mask][u] = dp[mask ^ (1 << u)][v] + dist[v][u]
+						par[mask][u] = v
+		#find the minimum cost
+		min_cost = 1000000
+		u = -1
+		for i in range(n):
+			if dp[(1 << n) - 1][i] < min_cost:
+				min_cost = dp[(1 << n) - 1][i]
+				u = i
+		#find the path
+		path = []
+		mask = (1 << n) - 1
+		while u != -1:
+			path.append(u)
+			v = par[mask][u]
+			mask ^= (1 << u)
+			u = v
+		path.reverse()
+		xy_path = []
+		for i in range(n):
+			xy_path.append(schedule[path[i]])
+		print(xy_path)
+		return xy_path	
 
 
 

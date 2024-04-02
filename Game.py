@@ -9,7 +9,7 @@ from Seeker import *
 from Hider import *
 from GameMenu import *
 # from Hider import *
-SPEED = 4
+SPEED = 2
 TILE_SIZE = 15
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
@@ -171,7 +171,7 @@ class Game():
         visited = [False for _ in range(len(target))]
 
         step = 0
-        self.point = 100 # initial points
+        self.point = 0 # initial points
         # # game loop
         while True:
             # escape condition
@@ -185,7 +185,8 @@ class Game():
                 return
             if canUseDP:
                 path = self.seeker.GoTo(target[best_choice_index])
-                
+                print(path[-1])
+
                 for pos in path:
                     clock = pygame.time.Clock()
                     
@@ -199,6 +200,7 @@ class Game():
                             location = hiders.pop(0)
                             path2 = self.seeker.GoTo(location)
                             for (x, y) in path2:
+                                #print(self.seeker.position)
                                 self.seeker.Move((x - self.seeker.position[0], y - self.seeker.position[1]))
                                 if self[(x, y)] == '2':
                                     self[(x, y)] = '3'
@@ -217,7 +219,6 @@ class Game():
                                                 self.__map[pos[0]][pos[1]] = '0'
 
                                     self.draw_mobs()
-
                                     self.list_announce.clear()
                                     self.list_announce = self.announce()
 
@@ -229,14 +230,10 @@ class Game():
                                 clock.tick(SPEED)
                                 pygame.display.flip()
                         break
-                    
                     if self.seeker.IsSignificantMove(path[-1]):
+                    # print(self.seeker.position)
                         self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
                     else:
-                        if best_choice_index < len(target) - 1:
-                            best_choice_index += 1           
-                        else:
-                            best_choice_index = 0    
                         break
 
                     self.point -= 1
@@ -355,7 +352,7 @@ class Game():
         spots = self.seeker.Scheduling()
         visited = [False for _ in range(len(spots))]
         steps = 0
-        self.point = 100
+        self.point = 0
         while True:
             # escape condition
             for event in pygame.event.get():
@@ -384,9 +381,9 @@ class Game():
                     # check if on the way to closest spot, are there any hiders
                     seen_hiders = self.seeker.checkHiderInVision()
                    
-                    for i in range(len(self.__map)):
-                        print(self.__map[i])
-                    print()
+                    # for i in range(len(self.__map)):
+                    #     print(self.__map[i])
+                    # print()
 
                     if len(seen_hiders): # if see hider
                         # choose the closest hider to catch 
