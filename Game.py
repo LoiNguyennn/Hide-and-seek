@@ -124,7 +124,8 @@ class Game():
         for hider in self.list_hider:
             pygame.draw.rect (self.win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         for pos in self.list_announce:
-            pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+            if self.__map[pos[0]][pos[1]][0] == '-':
+                pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         pygame.draw.rect (self.win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
         # schedule = self.seeker.Scheduling()
         # for pos in schedule:
@@ -381,9 +382,9 @@ class Game():
                     # check if on the way to closest spot, are there any hiders
                     seen_hiders = self.seeker.checkHiderInVision()
                    
-                    # for i in range(len(self.__map)):
-                    #     print(self.__map[i])
-                    # print()
+                    for i in range(len(self.__map)):
+                        print(self.__map[i])
+                    print()
 
                     if len(seen_hiders): # if see hider
                         # choose the closest hider to catch 
@@ -401,7 +402,7 @@ class Game():
                             self.point += 20
 
                         for i in range(len(self.list_hider)):
-                            self.list_hider[i].Escape()  
+                            self.list_hider[i].Escape()
                         
                         self.point -= 1
 
@@ -438,7 +439,7 @@ class Game():
                                 self.point += 20
 
                             for i in range(len(self.list_hider)):
-                                self.list_hider[i].Escape()  
+                                self.list_hider[i].Escape()
 
                             self.point -= 1
 
@@ -470,8 +471,10 @@ class Game():
                     else:
                         visited[closest_spot_index] = True
                         break
+
+
                     for i in range(len(self.list_hider)):
-                        self.list_hider[i].Escape() 
+                        self.list_hider[i].Escape()
                     
                     self.point -= 1
                     ############################################

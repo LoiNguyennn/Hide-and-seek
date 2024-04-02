@@ -33,7 +33,7 @@ class Hider:
             for dy in range(-2, 3):
                 if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
                     continue
-                if __map[x + dx][y + dy] == '0':
+                if __map[x + dx][y + dy] != 'D' and __map[x + dx][y + dy] != '1':
                     visible.append((x + dx, y + dy))
         return visible
     
@@ -115,7 +115,7 @@ class Hider:
         seeker_pos = self.checkSeekerInVision()        
         if seeker_pos:
             best_dir = None
-            max_dist = 0
+            max_dist = self.CalcDist(self.position, seeker_pos)
             for dir in DIRECTION.LIST_DIR:
                 x = self.position[0] + dir[0]
                 y = self.position[1] + dir[1]
@@ -125,13 +125,15 @@ class Hider:
                     continue
                 dist = self.CalcDist((x, y), seeker_pos)
 
-                if dist > max_dist:
+                if dist >= max_dist:
                     max_dist = dist
                     best_dir = dir
 
             if best_dir == None:
                 return False
             self.Move(best_dir)
+            if self.id == 4:
+                print(self.position)
         return True
 
     def generate_random_pos(self, width, length):
