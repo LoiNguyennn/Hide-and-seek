@@ -5,11 +5,12 @@ import sys
 from Seeker import *
 from Hider import *
 from GameMenu import *
-# from Hider import *
+
 Speed = 2
-TILE_SIZE = 15
+Tile_Size = 20
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
+OBJECT_COLOR = (254, 254, 254)
 WALL_COLOR = (200, 200, 200) 
 GROUND_COLOR = (0, 0, 0) 
 LIGHT_COLOR = (255, 255, 102)
@@ -23,9 +24,7 @@ OVERLAP_COLOR = (204, 130, 66)
 class Game():
     def __init__(self):
         self.menu = GameMenu()
-        # Check if the game should exit
         if self.menu.exit or self.menu.file_name is None or self.menu.level is None:
-            # Handle game exit or invalid menu options here
             pass
         else:
             self.run_game()
@@ -55,12 +54,14 @@ class HideAndSeek():
         self.__map = list()
         self.list_announce = list()
         self.__level = level
+        self.list_objects = []
         self.file_name = file_name
         try:
             with open(file_name, 'r') as file:
                 lines = file.readlines()
         except FileNotFoundError:
-                with open('map/' + file_name + '.txt', 'r') as file:
+                cleaned_string  = file_name[:file_name.index("(")].strip()
+                with open('map/' + cleaned_string + '.txt', 'r') as file:
                     lines = file.readlines()
         # #Input map
         self.width, self.length = map(int, lines[0].split())
@@ -74,7 +75,11 @@ class HideAndSeek():
         self.__map.append(['1'] * (self.length + 2))  # Add bottom border
         self.length += 2
         self.width += 2
-
+        
+        #Set game window size
+        global Tile_Size
+        Tile_Size = min(750 // self.width, 1380 // self.length)
+        
         #Find all the hiders and seeker
         id = 0
         for col in range(1, self.width - 1):
@@ -108,6 +113,11 @@ class HideAndSeek():
             print("Invalid object")
             return
         for i in range(top, bottom + 1):
+            for j in range(left, right + 1):   
+                if self[(i, j)] == '1':     
+                    print("Invalid object")
+                    return
+        for i in range(top, bottom + 1):
             for j in range(left, right + 1):
                 self.__map[i][j] = '1'
         if top > 0 and left > 0 and self.__map[top - 1][left - 1] == '1': #top left
@@ -122,6 +132,7 @@ class HideAndSeek():
         if bottom < self.width - 1 and left > 0 and self.__map[bottom + 1][left - 1] == '1': #bottom left
             if self.__map[bottom][left - 1] != '1' and self.__map[bottom + 1][left] != '1':
                 self.__map[bottom + 1][left] = '1'
+        self.list_objects.append(object)
 
     #Get square's value
     def __getitem__(self, position):
@@ -150,12 +161,17 @@ class HideAndSeek():
                     color = WALL_COLOR
                 else:
                     color = GROUND_COLOR
-                pygame.draw.rect (self.win, color , (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE , TILE_SIZE))
+                pygame.draw.rect (self.win, color , (col * Tile_Size, row * Tile_Size, Tile_Size , Tile_Size))
+        for object in self.list_objects:
+            top, left, bottom, right = object
+            for i in range(top, bottom + 1):
+                for j in range(left, right + 1):
+                     pygame.draw.rect (self.win, OBJECT_COLOR , (j * Tile_Size, i * Tile_Size, Tile_Size , Tile_Size))
         self.show_points()
     
     def draw_seen_squares(self, spots, color):
         for spot in spots:
-            pygame.draw.rect(self.win, color, (spot[1] * TILE_SIZE, spot[0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))  
+            pygame.draw.rect(self.win, color, (spot[1] * Tile_Size, spot[0] * Tile_Size, Tile_Size, Tile_Size))  
 
     def draw_mobs(self):
         #draw mobs's vision
@@ -171,11 +187,11 @@ class HideAndSeek():
             self.draw_seen_squares(overlap_pos, OVERLAP_COLOR)
         #draw mobs
         for hider in self.list_hider:
-            pygame.draw.rect (self.win, HIDER_COLOR , (hider.position[1] * TILE_SIZE, hider.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+            pygame.draw.rect (self.win, HIDER_COLOR , (hider.position[1] * Tile_Size, hider.position[0] * Tile_Size, Tile_Size - 2, Tile_Size - 2))
         for pos in self.list_announce:
             if self.__map[pos[0]][pos[1]][0] == '-':
-                pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * TILE_SIZE, pos[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
-        pygame.draw.rect (self.win, SEEKER_COLOR , (self.seeker.position[1] * TILE_SIZE, self.seeker.position[0] * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2))
+                pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * Tile_Size, pos[0] * Tile_Size, Tile_Size - 2, Tile_Size - 2))
+        pygame.draw.rect (self.win, SEEKER_COLOR , (self.seeker.position[1] * Tile_Size, self.seeker.position[0] * Tile_Size, Tile_Size - 2, Tile_Size - 2))
     
     def announce(self):
         list_announce = list()
@@ -192,16 +208,21 @@ class HideAndSeek():
         font = pygame.font.SysFont('arial', 15)
         point_text = font.render(f'Point: {self.point}', True, (255, 255, 255))
         
-        self.win.blit(point_text, (10, self.width * TILE_SIZE + 10))
-
+        self.win.blit(point_text, (10, self.width * Tile_Size + 10))
+    
+    def getIdHider(self, position):
+        for hider in self.list_hider:
+            if hider.position == position:
+                return hider.id
+        return 0
     #-------------------------GAME LEVELS-------------------------------------
     #LEVEL 1 AND 2
     def level_1_2(self):
         # init pygame:
         pygame.init()
         pygame.font.init()
-        SCREEN_HEIGHT = self.width * TILE_SIZE + 30
-        SCREEN_WIDTH = self.length * TILE_SIZE
+        SCREEN_HEIGHT = self.width * Tile_Size + 30
+        SCREEN_WIDTH = self.length * Tile_Size
 
         # create game window
         self.win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -285,7 +306,6 @@ class HideAndSeek():
 
                     self.point -= 1
                     step += 1
-                    self.win.fill((0, 0, 0))
                     self.draw_map()
                     self.draw_mobs()
 
@@ -378,11 +398,6 @@ class HideAndSeek():
                     clock.tick(Speed)
                     pygame.display.flip()
 
-    def getIdHider(self, position):
-        for hider in self.list_hider:
-            if hider.position == position:
-                return hider.id
-        return 0
 
     #LEVEL 3
     def level_3(self):  
@@ -390,8 +405,8 @@ class HideAndSeek():
         pygame.init()
         pygame.font.init()
 
-        SCREEN_HEIGHT = self.width * TILE_SIZE + 30
-        SCREEN_WIDTH = self.length * TILE_SIZE
+        SCREEN_HEIGHT = self.width * Tile_Size + 30
+        SCREEN_WIDTH = self.length * Tile_Size
         # create game window
         self.win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption('Hide and seek')
@@ -577,7 +592,6 @@ class HideAndSeek():
                         self.list_announce = self.announce()
                     ############################################
 
-                    self.win.fill((0, 0, 0))
                     self.draw_map()
                     self.draw_mobs()
                     clock.tick(Speed)     

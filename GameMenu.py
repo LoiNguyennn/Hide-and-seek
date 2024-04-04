@@ -70,7 +70,7 @@ class GameMenu(tk.Tk):
         self.level_label.pack(side=tk.LEFT)
 
         # Create a combobox for level selection
-        self.level_combobox = ttk.Combobox(self.selection_frame, values=["1", "2", "3", "4"], state="readonly", width=3)
+        self.level_combobox = ttk.Combobox(self.selection_frame, values=["1", "2", "3", "4"], state="readonly", width=3, font = element_font)
         self.level_combobox.pack(side=tk.LEFT, padx=(5, 20))
 
         # Label for the speed box entry box
@@ -112,7 +112,11 @@ class GameMenu(tk.Tk):
         for root, dirs, files in os.walk(initial_dir):
             for file in files:
                 if file.endswith('.txt'):
-                    list_file.append(file[:-4])
+                    file_name = file[:-4]
+                    with open('map/' + file_name + '.txt', 'r') as file:
+                        width, length = map(str, next(file).split())
+                    file_name += f" ({width} x {length})"
+                    list_file.append(file_name)
         return list_file
 
     # Function to update the entry box with the selected file name from the combobox
@@ -136,6 +140,28 @@ class GameMenu(tk.Tk):
             return True
         else:
             return False
+    
+    def increment(self):
+        try:
+            current_value = int(self.speed_entry.get())
+            if current_value == 9:
+                return
+            self.speed_entry.delete(0, tk.END)
+            self.speed_entry.insert(0, str(current_value + 1))
+        except ValueError:
+            self.speed_entry.delete(0, tk.END)
+            self.speed_entry.insert(0, '0')
+
+    def decrement(self):
+        try:
+            current_value = int(self.speed_entry.get())
+            if current_value == 1:
+                return
+            self.speed_entry.delete(0, tk.END)
+            self.speed_entry.insert(0, str(current_value - 1))
+        except ValueError:
+            self.speed_entry.delete(0, tk.END)
+            self.speed_entry.insert(0, '0')
 
     def check_file(self, file_name):
         try:
@@ -143,7 +169,8 @@ class GameMenu(tk.Tk):
                 return False
         except FileNotFoundError:
             try:
-                with open('map/' + file_name + '.txt', 'r') as file:
+                cleaned_string  = file_name[:file_name.index("(")].strip()
+                with open('map/' + cleaned_string + '.txt', 'r') as file:
                     return False
             except FileNotFoundError:
                 return True
@@ -189,28 +216,6 @@ class GameMenu(tk.Tk):
             self.destroy()
         else:
             self.message_label.config(text=message)
-    
-    def increment(self):
-        try:
-            current_value = int(self.speed_entry.get())
-            if current_value == 9:
-                return
-            self.speed_entry.delete(0, tk.END)
-            self.speed_entry.insert(0, str(current_value + 1))
-        except ValueError:
-            self.speed_entry.delete(0, tk.END)
-            self.speed_entry.insert(0, '0')
-
-    def decrement(self):
-        try:
-            current_value = int(self.speed_entry.get())
-            if current_value == 1:
-                return
-            self.speed_entry.delete(0, tk.END)
-            self.speed_entry.insert(0, str(current_value - 1))
-        except ValueError:
-            self.speed_entry.delete(0, tk.END)
-            self.speed_entry.insert(0, '0')
 
     def run_menu(self):
         self.mainloop()
