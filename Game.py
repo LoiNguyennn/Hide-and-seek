@@ -1,10 +1,7 @@
 # global constants
 import pygame
-import os
-import threading
 import time
 import sys
-import threading
 from Seeker import *
 from Hider import *
 from GameMenu import *
@@ -36,16 +33,17 @@ class Game():
     def run_game(self):
         global Speed
         Speed = self.menu.speed
-        self.game = HideAndSeek(self.menu.file_name, int(self.menu.level))
+        self.game = HideAndSeek(self.menu.file_name, self.menu.level)
         self.game.run_game()
         self.handle_end_menu()
 
     def handle_end_menu(self):
         self.end = EndMenu(self.game.win, self.game.point)
         while not self.end.goBack:
-            self.game.resetGame()
+            self.game = HideAndSeek(self.menu.file_name, self.menu.level)
+            self.game.run_game()    
             self.end = EndMenu(self.game.win, self.game.point)
-        self = Game()
+        return Game()
 
 
 class HideAndSeek():
@@ -102,10 +100,6 @@ class HideAndSeek():
         while num_hider > 1:
             self[self.list_hider.pop().position] = '0'
             num_hider -= 1
-
-    def resetGame(self):
-        self = HideAndSeek(self.file_name, self.__level)
-        self.run_game()
 
     #Create object
     def generate_object(self, object: tuple):
