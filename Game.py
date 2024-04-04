@@ -190,7 +190,7 @@ class HideAndSeek():
             list_announce.append(pos)
             if pos in self.list_hider:
                 continue
-            self.__map[pos[0]][pos[1]] = '-' + str(hider_pos.id + 1)
+            self.__map[pos[0]][pos[1]] = '-' + str(hider_pos.id)
         # avoid two different hiders using the same random positions
         return list_announce
 
@@ -238,7 +238,7 @@ class HideAndSeek():
                 return
             if canUseDP:
                 path = self.seeker.GoTo(target[best_choice_index])
-                print(path[-1])
+
 
                 for pos in path:
                     clock = pygame.time.Clock()
@@ -432,11 +432,12 @@ class HideAndSeek():
                 last_seen = (-1, -1)
                 while True:
                     # check if on the way to closest spot, are there any hiders
-                    seen_hiders = self.seeker.checkHiderInVision()
+                    announce_in_vision = []
+                    seen_hiders = self.seeker.checkHiderInVision(announce_in_vision)
                    
-                    for i in range(len(self.__map)):
-                        print(self.__map[i])
-                    print()
+                    # for i in range(len(self.__map)):
+                    #     print(self.__map[i])
+                    # print()
 
                     if len(seen_hiders): # if see hider
                         # choose the closest hider to catch 
@@ -447,7 +448,10 @@ class HideAndSeek():
                         last_seen = seen_hiders[best_hider_idx]
 
                         self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
-                        
+                        for idx, position in enumerate(spots):
+                            if position == self.seeker.position:
+                                visited[idx] = True
+
                         if self[pos] == '2':
                             self.__map[pos[0]][pos[1]] = '3'
                             self.remove_hider(pos)
@@ -466,9 +470,6 @@ class HideAndSeek():
                                     if self.__map[pos[0]][pos[1]][0] == '-':
                                         self.__map[pos[0]][pos[1]] = '0'
                             self.list_announce.clear()
-
-                            for i in range(len(self.list_hider)):
-                                self.list_hider[i].Escape()
                             self.list_announce = self.announce()
                         ############################################
 
@@ -484,6 +485,9 @@ class HideAndSeek():
                             dx = step_to_last_seen[0] - self.seeker.position[0]
                             dy = step_to_last_seen[1] - self.seeker.position[1]
                             self.seeker.Move((dx, dy))
+                            for idx, position in enumerate(spots):
+                                if position == self.seeker.position:
+                                    visited[idx] = True
 
                             if self[step_to_last_seen] == '2':
                                 self.__map[step_to_last_seen[0]][step_to_last_seen[1]] = '3'
@@ -512,7 +516,46 @@ class HideAndSeek():
                             clock.tick(Speed)      
                             pygame.display.flip()         
                         last_seen = (-1, -1)     
-                        break
+                        break                    
+                    elif len(announce_in_vision):
+                        foundHider = True
+                        best_announce_idx = self.seeker.FindBestSpotIndex(announce_in_vision)
+                        path_to_best_announce = self.seeker.GoTo(announce_in_vision[best_announce_idx])
+                        pos = path_to_best_announce[0]
+                        last_seen = announce_in_vision[best_announce_idx]
+
+                        self.seeker.Move((pos[0] - self.seeker.position[0], pos[1] - self.seeker.position[1]))
+                        for idx, position in enumerate(spots):
+                            if position == self.seeker.position:
+                                visited[idx] = True
+
+                        if self[pos] == '2':
+                            self.__map[pos[0]][pos[1]] = '3'
+                            self.remove_hider(pos)
+                            self.point += 20
+
+                        for i in range(len(self.list_hider)):
+                            self.list_hider[i].Escape()
+                        
+                        self.point -= 1
+
+                        ############################################3
+                        steps += 1
+                        if steps % 5 == 0:
+                            if self.list_announce:
+                                for pos in self.list_announce:
+                                    if self.__map[pos[0]][pos[1]][0] == '-':
+                                        self.__map[pos[0]][pos[1]] = '0'
+                            self.list_announce.clear()
+                            self.list_announce = self.announce()
+                        ############################################
+
+                        self.win.fill((0, 0, 0))
+                        self.draw_map()
+                        self.draw_mobs()
+                        
+                        clock.tick(Speed)      
+                        pygame.display.flip()                    
                     else: 
                         break    
                 if foundHider:    

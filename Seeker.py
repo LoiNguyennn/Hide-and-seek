@@ -109,7 +109,6 @@ class Seeker:
 		xy_path = []
 		for i in range(n):
 			xy_path.append(schedule[path[i]])
-		print(xy_path)
 		return xy_path	
 
 
@@ -186,13 +185,21 @@ class Seeker:
 					visible.append((x + dx, y + dy))
 		return visible
 	
-	def checkHiderInVision(self):
+	def checkHiderInVision(self, announce = None):
 		_map = deepcopy(self.map)
 		hider_list = []
 		x, y = self.position[0], self.position[1]
 		r = len(_map)
 		c = len(_map[0])
 		__map = deepcopy(_map)
+
+		if announce != None:
+			for dx in range(-3, 4):
+				for dy in range(-3, 4):
+					if x + dx < 0 or x + dx >= r or y + dy < 0 or y + dy >= c:
+						continue
+					if __map[x + dx][y + dy][0] == '-':
+						announce.append((x + dx, y + dy))	
 
 		for dx in range(-2, 3):
 			for dy in range(-2, 3):
@@ -323,11 +330,8 @@ class Seeker:
 			for j in range(c):
 				if _map[i][j] == '1':
 					continue
-			
-				backup_pos = self.position
-				self.position = (i, j) # fake
-				visible = self.checkVision()
-				self.position = backup_pos
+				dummy = Seeker(0, (i, j), self.map)
+				visible = dummy.checkVision()
 				pq.put(( -1 * (( len(visible) + abs(i - r / 2) + abs(j - c / 2) )), (i, j)  ))
 				visible_pos[(i, j)] = visible
 		schedule = []

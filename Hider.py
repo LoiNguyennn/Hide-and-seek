@@ -10,6 +10,8 @@ class Hider:
         self.position = position
         self.map = map
         self.id = id
+        self.last_seen = (-1, -1)
+        self.visited = [[0 for j in range(len(map[i]))] for i in range(len(map))]
 
     def checkVision(self):
         _map = deepcopy(self.map)
@@ -114,8 +116,8 @@ class Hider:
         c = len(self.map[0]) 
         seeker_pos = self.checkSeekerInVision()        
         if seeker_pos:
-            best_dir = None
-            max_dist = self.CalcDist(self.position, seeker_pos)
+            self.last_seen = seeker_pos
+            available = (-1, -1)
             for dir in DIRECTION.LIST_DIR:
                 x = self.position[0] + dir[0]
                 y = self.position[1] + dir[1]
@@ -123,7 +125,26 @@ class Hider:
                     continue
                 if self.map[x][y] == '1' or self.map[x][y] == '2' or self.map[x][y] == '3':
                     continue
-                dist = self.CalcDist((x, y), seeker_pos)
+                if self.visited[x][y]:
+                    continue     
+                available = (x, y)
+                break 
+            if available == (-1, -1):
+                self.visited = [[0 for j in range(len(self.map[i]))] for i in range(len(self.map))]                    
+
+        if self.last_seen != (-1, -1):
+            best_dir = None
+            max_dist = 0
+            for dir in DIRECTION.LIST_DIR:
+                x = self.position[0] + dir[0]
+                y = self.position[1] + dir[1]
+                if x < 0 or x >= r or y < 0 or y >= c:
+                    continue
+                if self.map[x][y] == '1' or self.map[x][y] == '2' or self.map[x][y] == '3':
+                    continue
+                if self.visited[x][y]:
+                    continue
+                dist = self.CalcDist((x, y), self.last_seen)
 
                 if dist >= max_dist:
                     max_dist = dist
@@ -132,8 +153,7 @@ class Hider:
             if best_dir == None:
                 return False
             self.Move(best_dir)
-            if self.id == 4:
-                print(self.position)
+            self.visited[self.position[0]][self.position[1]] = 1
         return True
 
     def generate_random_pos(self, width, length):
