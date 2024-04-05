@@ -215,6 +215,15 @@ class HideAndSeek():
             if hider.position == position:
                 return hider.id
         return 0
+    
+    def checkSolvable(self):
+        for hider in self.list_hider:
+            dist = hider.CalcDist(hider.position, self.seeker.position)
+            if dist == 'inf':
+                print('unsolvable')
+                return False 
+        print('solvable')
+        return True
     #-------------------------GAME LEVELS-------------------------------------
     #LEVEL 1 AND 2
     def level_1_2(self):
@@ -606,12 +615,13 @@ class HideAndSeek():
     
     #PLAY
     def run_game(self):
-        if self.__level < 3:
-            self.level_1_2()
-        elif self.__level == 3:
-            self.level_3()
-        else:
-            self.level_4()
+        if self.checkSolvable():
+            if self.__level < 3:
+                self.level_1_2()
+            elif self.__level == 3:
+                self.level_3()
+            else:
+                self.level_4()
 
         
 ###test run game:

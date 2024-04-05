@@ -109,7 +109,7 @@ class Hider:
                     if v == dest:
                         return dist[v]
                     q.put(v)  
-        return 0
+        return 'inf'
 
     def Escape(self):
         r = len(self.map)
