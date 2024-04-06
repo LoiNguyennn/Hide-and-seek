@@ -147,9 +147,10 @@ class HideAndSeek():
         
     #Delete caught hider
     def remove_hider(self, position):
-        for hider in self.list_hider:
-            if hider.position == position:
-                self.list_hider.remove(hider)
+        for i in range(0, len(self.list_hider)):
+            if self.list_hider[i].position == position:
+                self.list_hider.remove(self.list_hider[i])
+                self.list_announce.remove(self.list_announce[i])
                 return
                  
    
