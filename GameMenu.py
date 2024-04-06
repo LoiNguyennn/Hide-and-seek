@@ -15,7 +15,7 @@ class GameMenu(tk.Tk):
     
     def create_widgets(self):
         self.title('Hide And Seek')
-        self.geometry('580x350+550+220')
+        self.geometry('580x350+380+150')
         self.resizable(width=False, height=False)
         # Frame to hold the label and button
         top_frame = tk.Frame(self)

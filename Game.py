@@ -78,7 +78,7 @@ class HideAndSeek():
         
         #Set game window size
         global Tile_Size
-        Tile_Size = min(750 // self.width, 1380 // self.length)
+        Tile_Size = min(550 // self.width, 1080 // self.length)
         
         #Find all the hiders and seeker
         id = 0
