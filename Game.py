@@ -7,7 +7,7 @@ from Hider import *
 from GameMenu import *
 
 Speed = 2
-Tile_Size = 20
+Tile_Size = 25
 SEEKER_COLOR = (69, 115, 195)
 HIDER_COLOR  = (199, 51, 21)
 OBJECT_COLOR = (254, 254, 254)
@@ -78,7 +78,7 @@ class HideAndSeek():
         
         #Set game window size
         global Tile_Size
-        Tile_Size = min(550 // self.width, 1080 // self.length)
+        Tile_Size = min(750 // self.width, 1380 // self.length, Tile_Size)
         
         #Find all the hiders and seeker
         id = 0
@@ -196,7 +196,7 @@ class HideAndSeek():
             for i in range(top, bottom + 1):
                 for j in range(left, right + 1):
                      pygame.draw.rect (self.win, OBJECT_COLOR , (j * Tile_Size, i * Tile_Size, Tile_Size , Tile_Size))
-        self.show_points()
+        self.show_attributes()
     
     def draw_seen_squares(self, spots, color):
         for spot in spots:
@@ -222,9 +222,9 @@ class HideAndSeek():
                 pygame.draw.rect(self.win, ANNOUNCE_COLOR, (pos[1] * Tile_Size, pos[0] * Tile_Size, Tile_Size - 2, Tile_Size - 2))
         pygame.draw.rect (self.win, SEEKER_COLOR , (self.seeker.position[1] * Tile_Size, self.seeker.position[0] * Tile_Size, Tile_Size - 2, Tile_Size - 2))
 
-    def show_points(self):
+    def show_attributes(self):
         font = pygame.font.SysFont('arial', 22)
-        text_surface = font.render(f' Level: {self.__level}, Size: {self.width-2}x{self.length-2}, Point: {self.point}', True, (169, 205, 227))
+        text_surface = font.render(f' Level: {self.__level}, Size: {self.width-2}x{self.length-2}, Point: {self.point}, Hider left: {len(self.list_hider)}', True, (169, 205, 227))
         text_rect = text_surface.get_rect()
         text_rect.topleft = (10, 10)  # Position of the text on the window
         self.win.blit(text_surface, (10, self.width * Tile_Size + 10))
